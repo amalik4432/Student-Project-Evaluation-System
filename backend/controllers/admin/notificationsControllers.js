@@ -1,9 +1,9 @@
-const mongoose = require("mongoose");
-const { validationResult } = require("express-validator");
+import mongoose from "mongoose";
+import { validationResult } from "express-validator";
 
-const HttpError = require("../../models/HttpError");
-const Teacher = require("../../models/teacherModel");
-const Notification = require("../../models/notificationModel");
+import HttpError from "../../models/HttpError.js";
+import Teacher from "../../models/teacherModel.js";
+import Notification from "../../models/notificationModel.js";
 
 const getNotifications = async (req, res, next) => {
   let notifications;
@@ -24,7 +24,7 @@ const createNotification = async (req, res, next) => {
 
   if (!errors.isEmpty()) {
     return next(
-      new HttpError("Invalid inputs passed, please check your data.", 422)
+      new HttpError("Invalid inputs passed, please check your data.", 422),
     );
   }
 
@@ -59,7 +59,7 @@ const createNotification = async (req, res, next) => {
     await session.abortTransaction();
     session.endSession();
     return next(
-      new HttpError("Invalid inputs passed, please check your data.", 422)
+      new HttpError("Invalid inputs passed, please check your data.", 422),
     );
   }
 };
@@ -74,7 +74,7 @@ const deleteNotification = async (req, res, next) => {
   try {
     notification = await Notification.findOneAndDelete(
       { _id: notificationId },
-      { session: session }
+      { session: session },
     );
 
     if (!notification) {
@@ -96,13 +96,13 @@ const deleteNotification = async (req, res, next) => {
     return next(
       new HttpError(
         "Something went wrong, couldn't delete the notification",
-        500
-      )
+        500,
+      ),
     );
   }
 };
 
-module.exports = {
+export default {
   getNotifications,
   deleteNotification,
   createNotification,

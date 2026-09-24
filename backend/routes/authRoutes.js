@@ -1,12 +1,14 @@
-const express = require("express");
-const verifyToken = require("../middlewares/verifyToken");
+import express from "express";
+import verifyToken from "../middlewares/verifyToken.js";
+
+import authControllers from "../controllers/authControllers.js";
 
 const {
   login,
   updateStudentPassword,
   updateTeacherPassword,
   updateAdminPassword,
-} = require("../controllers/authControllers");
+} = authControllers;
 
 const router = express.Router();
 
@@ -15,4 +17,4 @@ router.put("/student/update-password", verifyToken, updateStudentPassword);
 router.put("/teacher/update-password", verifyToken, updateTeacherPassword);
 router.put("/admin/update-password", verifyToken, updateAdminPassword);
 
-module.exports = router;
+export default router;

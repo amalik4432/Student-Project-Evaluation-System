@@ -1,32 +1,26 @@
-const express = require("express");
-const { body } = require("express-validator");
+import express from "express";
+import { body } from "express-validator";
 
-const { getDashboard } = require("../controllers/student/dashboardControllers");
+import dashboardControllers from "../controllers/student/dashboardControllers.js";
+import projectControllers from "../controllers/student/projectControllers.js";
+import proposalControllers from "../controllers/student/proposalControllers.js";
+import taskControllers from "../controllers/student/taskControllers.js";
+import notesControllers from "../controllers/student/notesControllers.js";
 
-const {
-  getProjectPage,
-  editProjectDescription,
-} = require("../controllers/student/projectControllers");
+const { getDashboard } = dashboardControllers;
+
+const { getProjectPage, editProjectDescription } = projectControllers;
 const {
   getProposal,
   submitProposal,
   getAvailableSupervisors,
   requestSupervisor,
-} = require("../controllers/student/proposalControllers");
+} = proposalControllers;
 
-const {
-  getTasks,
-  createTask,
-  completeTask,
-  deleteTask,
-  getTaskFormData,
-} = require("../controllers/student/taskControllers");
+const { getTasks, createTask, completeTask, deleteTask, getTaskFormData } =
+  taskControllers;
 
-const {
-  getNotes,
-  createNote,
-  deleteNote,
-} = require("../controllers/student/notesControllers");
+const { getNotes, createNote, deleteNote } = notesControllers;
 
 const router = express.Router();
 
@@ -55,4 +49,4 @@ router.get("/personal-notes", getNotes);
 router.post("/personal-notes/new-note", createNote);
 router.delete("/personal-notes/:noteId/delete", deleteNote);
 
-module.exports = router;
+export default router;

@@ -1,10 +1,10 @@
-const mongoose = require("mongoose");
-const { validationResult } = require("express-validator");
+import mongoose from "mongoose";
+import { validationResult } from "express-validator";
 
-const HttpError = require("../../models/HttpError");
-const Class = require("../../models/classModel");
-const Teacher = require("../../models/teacherModel");
-const NoticeBoard = require("../../models/noticeBoardModel");
+import HttpError from "../../models/HttpError.js";
+import Class from "../../models/classModel.js";
+import Teacher from "../../models/teacherModel.js";
+import NoticeBoard from "../../models/noticeBoardModel.js";
 
 const getNoticeBoard = async (req, res, next) => {
   let notices;
@@ -14,7 +14,7 @@ const getNoticeBoard = async (req, res, next) => {
   } catch (err) {
     console.error(err);
     return next(
-      new HttpError("Something went wrong, couldn't find notices", 500)
+      new HttpError("Something went wrong, couldn't find notices", 500),
     );
   }
 };
@@ -25,7 +25,7 @@ const createNotice = async (req, res, next) => {
 
   if (!errors.isEmpty()) {
     return next(
-      new HttpError("Invalid inputs passed, please check your data.", 422)
+      new HttpError("Invalid inputs passed, please check your data.", 422),
     );
   }
 
@@ -65,7 +65,7 @@ const createNotice = async (req, res, next) => {
     await session.abortTransaction();
     session.endSession();
     return next(
-      new HttpError("Invalid inputs passed, please check your data.", 422)
+      new HttpError("Invalid inputs passed, please check your data.", 422),
     );
   }
   res.status(200).json({
@@ -84,7 +84,7 @@ const deleteNotice = async (req, res, next) => {
   try {
     notice = await NoticeBoard.findOneAndDelete(
       { _id: noticeId },
-      { session: session }
+      { session: session },
     );
 
     if (!notice) {
@@ -104,12 +104,12 @@ const deleteNotice = async (req, res, next) => {
     await session.abortTransaction();
     session.endSession();
     return next(
-      new HttpError("Something went wrong, couldn't delete the notice", 500)
+      new HttpError("Something went wrong, couldn't delete the notice", 500),
     );
   }
 };
 
-module.exports = {
+export default {
   createNotice,
   getNoticeBoard,
   deleteNotice,

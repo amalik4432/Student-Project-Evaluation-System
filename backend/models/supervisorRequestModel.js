@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const supervisorRequestSchema = new mongoose.Schema(
   {
@@ -25,4 +25,4 @@ const supervisorRequestSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-module.exports = mongoose.model("SupervisorRequest", supervisorRequestSchema);
+export default mongoose.model("SupervisorRequest", supervisorRequestSchema);

@@ -1,5 +1,5 @@
-const HttpError = require("../../models/HttpError");
-const SupervisorRequest = require("../../models/supervisorRequestModel");
+import HttpError from "../../models/HttpError.js";
+import SupervisorRequest from "../../models/supervisorRequestModel.js";
 
 const getRequests = async (req, res, next) => {
   try {
@@ -29,4 +29,4 @@ const updateRequest = async (req, res, next) => {
   }
 };
 
-module.exports = { getRequests, updateRequest };
+export default { getRequests, updateRequest };

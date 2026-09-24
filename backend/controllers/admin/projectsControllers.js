@@ -1,11 +1,11 @@
-const mongoose = require("mongoose");
-const { validationResult } = require("express-validator");
+import mongoose from "mongoose";
+import { validationResult } from "express-validator";
 
-const HttpError = require("../../models/HttpError");
-const Teacher = require("../../models/teacherModel");
-const Class = require("../../models/classModel");
-const Student = require("../../models/studentModel");
-const Project = require("../../models/projectModel");
+import HttpError from "../../models/HttpError.js";
+import Teacher from "../../models/teacherModel.js";
+import Class from "../../models/classModel.js";
+import Student from "../../models/studentModel.js";
+import Project from "../../models/projectModel.js";
 
 // Create a new project
 const createProject = async (req, res, next) => {
@@ -36,15 +36,15 @@ const createProject = async (req, res, next) => {
       return next(
         new HttpError(
           "Can't register Project, supervisor not assigned to class",
-          404
-        )
+          404,
+        ),
       );
     }
 
     // Check if class exists or not
     if (!myClass) {
       return next(
-        new HttpError("Can't register Project, Class doesn't exists", 404)
+        new HttpError("Can't register Project, Class doesn't exists", 404),
       );
     }
 
@@ -90,7 +90,7 @@ const createProject = async (req, res, next) => {
     for (const student of allStudents) {
       await student.updateOne(
         { assignedProjectId: project._id },
-        { session: sess }
+        { session: sess },
       );
     }
 
@@ -108,7 +108,7 @@ const createProject = async (req, res, next) => {
     sess.endSession();
     console.error(error);
     return next(
-      new HttpError("Can't register Project, internal server error", 500)
+      new HttpError("Can't register Project, internal server error", 500),
     );
   }
 };
@@ -140,7 +140,7 @@ const getProjectById = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     return next(
-      new HttpError("Can't register Project, internal server error", 500)
+      new HttpError("Can't register Project, internal server error", 500),
     );
   }
 };
@@ -173,7 +173,7 @@ const updateProject = async (req, res, next) => {
         supervisorName,
         supervisorId,
       },
-      { new: false, session: sess }
+      { new: false, session: sess },
     );
 
     if (!project) {
@@ -205,7 +205,7 @@ const updateProject = async (req, res, next) => {
     sess.endSession();
     console.error(error);
     return next(
-      new HttpError("Can't update Project, internal server error", 500)
+      new HttpError("Can't update Project, internal server error", 500),
     );
   }
 };
@@ -252,12 +252,12 @@ const deleteProject = async (req, res, next) => {
     sess.endSession();
     console.error(error);
     return next(
-      new HttpError("Can't register Project, internal server error", 500)
+      new HttpError("Can't register Project, internal server error", 500),
     );
   }
 };
 
-module.exports = {
+export default {
   createProject,
   getAllProjects,
   getProjectById,

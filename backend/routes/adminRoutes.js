@@ -1,14 +1,24 @@
-const express = require("express");
-const verifyToken = require("../middlewares/verifyToken");
-const { body } = require("express-validator");
+import express from "express";
+import verifyToken from "../middlewares/verifyToken.js";
+import { body } from "express-validator";
 
-const { getDashboard } = require("../controllers/admin/dashboardController");
+import dashboardController from "../controllers/admin/dashboardController.js";
+import formControllers from "../controllers/admin/formControllers.js";
+import classesControllers from "../controllers/admin/classesControllers.js";
+import notificationsControllers from "../controllers/admin/notificationsControllers.js";
+import noticeBoardControllers from "../controllers/admin/noticeBoardControllers.js";
+import teachersControllers from "../controllers/admin/teachersControllers.js";
+import projectsControllers from "../controllers/admin/projectsControllers.js";
+import notesControllers from "../controllers/admin/notesControllers.js";
+import proposalControllers from "../controllers/admin/proposalControllers.js";
+
+const { getDashboard } = dashboardController;
 const {
   getProjectFormData,
   loadAddSupervisorData,
   loadNewNoticeFormData,
   loadAddExaminerData,
-} = require("../controllers/admin/formControllers");
+} = formControllers;
 // CLASSES
 const {
   getClasses,
@@ -18,21 +28,14 @@ const {
   assignSupervisorToClass,
   assignExaminerToClass,
   deleteClass,
-} = require("../controllers/admin/classesControllers");
+} = classesControllers;
 
 // NOTIFICATIONS
-const {
-  getNotifications,
-  createNotification,
-  deleteNotification,
-} = require("../controllers/admin/notificationsControllers");
+const { getNotifications, createNotification, deleteNotification } =
+  notificationsControllers;
 
 // NOTICES
-const {
-  createNotice,
-  getNoticeBoard,
-  deleteNotice,
-} = require("../controllers/admin/noticeBoardControllers");
+const { createNotice, getNoticeBoard, deleteNotice } = noticeBoardControllers;
 
 // TEACHERS
 const {
@@ -40,7 +43,7 @@ const {
   getTeacherById,
   unAssignSupervisorToClass,
   unAssignExaminerToClass,
-} = require("../controllers/admin/teachersControllers");
+} = teachersControllers;
 
 // PROJECTS
 const {
@@ -49,18 +52,11 @@ const {
   getProjectById,
   updateProject,
   deleteProject,
-} = require("../controllers/admin/projectsControllers");
+} = projectsControllers;
 
 // PERSONAL NOTES
-const {
-  getNotes,
-  createNote,
-  deleteNote,
-} = require("../controllers/admin/notesControllers");
-const {
-  getProposalOverview,
-  approveProposal,
-} = require("../controllers/admin/proposalControllers");
+const { getNotes, createNote, deleteNote } = notesControllers;
+const { getProposalOverview, approveProposal } = proposalControllers;
 
 // ///////////////////////////////////////////////////////////////////////////////////
 const router = express.Router();
@@ -191,4 +187,4 @@ router.get("/forms/add-supervisor/data", verifyToken, loadAddSupervisorData);
 router.get("/forms/add-examiner/data", verifyToken, loadAddExaminerData);
 router.get("/forms/new-notice/data", verifyToken, loadNewNoticeFormData);
 
-module.exports = router;
+export default router;

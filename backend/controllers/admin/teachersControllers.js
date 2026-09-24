@@ -1,6 +1,6 @@
-const bcrypt = require("bcrypt");
-const { validationResult } = require("express-validator");
-const mongoose = require("mongoose");
+import bcrypt from "bcrypt";
+import { validationResult } from "express-validator";
+import mongoose from "mongoose";
 
 const sourceUri = process.env.MONGODB_URI?.replace(
   "/fypms?",
@@ -13,11 +13,11 @@ sourceDB.on("error", (error) => {
   console.error(`Source MongoDB connection error: ${error.message}`);
 });
 
-const HttpError = require("../../models/HttpError");
-const Teacher = require("../../models/teacherModel");
-const Class = require("../../models/classModel");
-const Project = require("../../models/projectModel");
-const NoticeBoard = require("../../models/noticeBoardModel");
+import HttpError from "../../models/HttpError.js";
+import Teacher from "../../models/teacherModel.js";
+import Class from "../../models/classModel.js";
+import Project from "../../models/projectModel.js";
+import NoticeBoard from "../../models/noticeBoardModel.js";
 
 let resume_token = null;
 
@@ -274,7 +274,7 @@ const unAssignExaminerToClass = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export default {
   getTeachers,
   unAssignSupervisorToClass,
   unAssignExaminerToClass,

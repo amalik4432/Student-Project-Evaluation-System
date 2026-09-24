@@ -1,5 +1,5 @@
-const HttpError = require("../../models/HttpError");
-const Project = require("../../models/projectModel");
+import HttpError from "../../models/HttpError.js";
+import Project from "../../models/projectModel.js";
 
 const getProposalOverview = async (req, res, next) => {
   try {
@@ -50,4 +50,4 @@ const approveProposal = async (req, res, next) => {
   }
 };
 
-module.exports = { getProposalOverview, approveProposal };
+export default { getProposalOverview, approveProposal };

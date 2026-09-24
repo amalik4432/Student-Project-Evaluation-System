@@ -1,8 +1,8 @@
-const HttpError = require("../../models/HttpError");
-const Teacher = require("../../models/teacherModel");
-const Class = require("../../models/classModel");
-const Student = require("../../models/studentModel");
-const Project = require("../../models/projectModel");
+import HttpError from "../../models/HttpError.js";
+import Teacher from "../../models/teacherModel.js";
+import Class from "../../models/classModel.js";
+import Student from "../../models/studentModel.js";
+import Project from "../../models/projectModel.js";
 
 const getProjectPage = async (req, res, next) => {
   const { studentId } = req.query;
@@ -23,7 +23,7 @@ const getProjectPage = async (req, res, next) => {
     for (const member of project.memberNames) {
       const student = await Student.findById(
         member.id,
-        "name rollNo image hasTopped"
+        "name rollNo image hasTopped",
       );
       if (student) {
         projectMembers.push(student);
@@ -50,7 +50,7 @@ const editProjectDescription = async (req, res, next) => {
     const project = await Project.findByIdAndUpdate(
       projectId,
       { description: description },
-      { new: true }
+      { new: true },
     );
     res.status(200).json({
       message: "Description Edited Successfully",
@@ -61,7 +61,7 @@ const editProjectDescription = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export default {
   getProjectPage,
   editProjectDescription,
 };

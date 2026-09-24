@@ -1,8 +1,8 @@
-const HttpError = require("../../models/HttpError");
-const Project = require("../../models/projectModel");
-const Student = require("../../models/studentModel");
-const Teacher = require("../../models/teacherModel");
-const SupervisorRequest = require("../../models/supervisorRequestModel");
+import HttpError from "../../models/HttpError.js";
+import Project from "../../models/projectModel.js";
+import Student from "../../models/studentModel.js";
+import Teacher from "../../models/teacherModel.js";
+import SupervisorRequest from "../../models/supervisorRequestModel.js";
 
 const generateAiFeedback = (text) => {
   const normalized = text.toLowerCase();
@@ -146,7 +146,7 @@ const requestSupervisor = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export default {
   getProposal,
   submitProposal,
   getAvailableSupervisors,

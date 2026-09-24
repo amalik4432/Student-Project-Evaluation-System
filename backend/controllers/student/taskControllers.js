@@ -1,8 +1,8 @@
-const HttpError = require("../../models/HttpError");
-const Teacher = require("../../models/teacherModel");
-const Class = require("../../models/classModel");
-const Student = require("../../models/studentModel");
-const Project = require("../../models/projectModel");
+import HttpError from "../../models/HttpError.js";
+import Teacher from "../../models/teacherModel.js";
+import Class from "../../models/classModel.js";
+import Student from "../../models/studentModel.js";
+import Project from "../../models/projectModel.js";
 
 const getTasks = async (req, res, next) => {
   const { studentId } = req.query;
@@ -34,11 +34,11 @@ const getTasks = async (req, res, next) => {
     allTasks = project.tasks;
 
     myTodoList = project.tasks.filter(
-      (task) => task.assignedToId.equals(student._id) && !task.endDate
+      (task) => task.assignedToId.equals(student._id) && !task.endDate,
     );
 
     myCompletedTasks = project.tasks.filter(
-      (task) => task.assignedToId.equals(student._id) && task.endDate
+      (task) => task.assignedToId.equals(student._id) && task.endDate,
     );
 
     res.send({
@@ -46,7 +46,7 @@ const getTasks = async (req, res, next) => {
       allTasks: allTasks.map((t) => t.toObject({ getters: true })),
       myTodoList: myTodoList.map((t) => t.toObject({ getters: true })),
       myCompletedTasks: myCompletedTasks.map((t) =>
-        t.toObject({ getters: true })
+        t.toObject({ getters: true }),
       ),
     });
   } catch (err) {
@@ -142,7 +142,7 @@ const deleteTask = async (req, res, next) => {
         },
       },
       { $pull: { tasks: { _id: taskId } } },
-      { new: true }
+      { new: true },
     );
 
     if (!project) {
@@ -182,7 +182,7 @@ const getTaskFormData = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export default {
   getTasks,
   createTask,
   completeTask,

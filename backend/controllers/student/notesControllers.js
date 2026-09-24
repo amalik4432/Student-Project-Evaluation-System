@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-const HttpError = require("../../models/HttpError");
-const Student = require("../../models/studentModel");
+import HttpError from "../../models/HttpError.js";
+import Student from "../../models/studentModel.js";
 
 const getNotes = async (req, res, next) => {
   const { userId } = req.query;
@@ -13,7 +13,7 @@ const getNotes = async (req, res, next) => {
   } catch (err) {
     console.error(err);
     return next(
-      new HttpError("Something went wrong, couldn't find notes", 500)
+      new HttpError("Something went wrong, couldn't find notes", 500),
     );
   }
 };
@@ -46,7 +46,7 @@ const createNote = async (req, res, next) => {
     await session.abortTransaction();
     session.endSession();
     return next(
-      new HttpError("Something went wrong, couldn't save the note", 500)
+      new HttpError("Something went wrong, couldn't save the note", 500),
     );
   }
 };
@@ -62,7 +62,7 @@ const deleteNote = async (req, res, next) => {
     await Student.updateOne(
       { _id: userId },
       { $pull: { notes: { _id: noteId } } },
-      { session }
+      { session },
     );
 
     await session.commitTransaction();
@@ -75,12 +75,12 @@ const deleteNote = async (req, res, next) => {
     await session.abortTransaction();
     session.endSession();
     return next(
-      new HttpError("Something went wrong, couldn't save the note", 500)
+      new HttpError("Something went wrong, couldn't save the note", 500),
     );
   }
 };
 
-module.exports = {
+export default {
   getNotes,
   createNote,
   deleteNote,

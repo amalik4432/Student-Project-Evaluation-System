@@ -1,8 +1,8 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-const HttpError = require("../../models/HttpError");
-const Notification = require("../../models/notificationModel");
-const Teacher = require("../../models/teacherModel");
+import HttpError from "../../models/HttpError.js";
+import Notification from "../../models/notificationModel.js";
+import Teacher from "../../models/teacherModel.js";
 
 const getNotifications = async (req, res, next) => {
   const { userId } = req.query;
@@ -14,7 +14,7 @@ const getNotifications = async (req, res, next) => {
   } catch (err) {
     console.error(err);
     return next(
-      new HttpError("Something went wrong, couldn't find notifications", 500)
+      new HttpError("Something went wrong, couldn't find notifications", 500),
     );
   }
 };
@@ -53,7 +53,7 @@ const createNotification = async (req, res, next) => {
     await session.abortTransaction();
     session.endSession();
     return next(
-      new HttpError("Something went wrong, couldn't save the note", 500)
+      new HttpError("Something went wrong, couldn't save the note", 500),
     );
   }
 };
@@ -77,12 +77,12 @@ const deleteNotification = async (req, res, next) => {
     await session.abortTransaction();
     session.endSession();
     return next(
-      new HttpError("Something went wrong, couldn't save the note", 500)
+      new HttpError("Something went wrong, couldn't save the note", 500),
     );
   }
 };
 
-module.exports = {
+export default {
   getNotifications,
   createNotification,
   deleteNotification,

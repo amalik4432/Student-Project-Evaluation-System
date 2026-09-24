@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const Schema = mongoose.Schema;
 
@@ -31,4 +31,4 @@ const noticeBoardSchema = new Schema({
 
 // noticeBoardSchema.set("toObject", { getters: true });
 
-module.exports = mongoose.model("NoticeBoard", noticeBoardSchema);
+export default mongoose.model("NoticeBoard", noticeBoardSchema);

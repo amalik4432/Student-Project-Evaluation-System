@@ -1,6 +1,6 @@
-const HttpError = require("../../models/HttpError");
-const NoticeBoard = require("../../models/noticeBoardModel");
-const Project = require("../../models/projectModel");
+import HttpError from "../../models/HttpError.js";
+import NoticeBoard from "../../models/noticeBoardModel.js";
+import Project from "../../models/projectModel.js";
 
 const getDashboard = async (req, res, next) => {
   const { studentId } = req.query;
@@ -25,7 +25,7 @@ const getDashboard = async (req, res, next) => {
     });
 
     myTodoList = project.tasks.filter(
-      (task) => task.assignedToId.equals(studentId) && !task.endDate
+      (task) => task.assignedToId.equals(studentId) && !task.endDate,
     );
 
     res.send({
@@ -38,6 +38,6 @@ const getDashboard = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export default {
   getDashboard,
 };

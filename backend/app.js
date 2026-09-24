@@ -1,8 +1,13 @@
-require("dotenv").config();
+import "dotenv/config";
 
-const express = require("express");
-const cors = require("cors");
-const connectDB = require("./config/db.js");
+import express from "express";
+import cors from "cors";
+import connectDB from "./config/db.js";
+import authRoutes from "./routes/authRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import studentRoutes from "./routes/studentRoutes.js";
+import teacherRoutes from "./routes/teacherRoutes.js";
+import HttpError from "./models/HttpError.js";
 
 process.on("uncaughtException", (error) => {
   if (error.code === "ECONNREFUSED" && error.syscall === "querySrv") {
@@ -25,17 +30,16 @@ const corsOptions = {
 app.use(express.json());
 app.use(cors(corsOptions));
 
-app.use("/api/", require("./routes/authRoutes"));
-app.use("/api/admin", require("./routes/adminRoutes"));
-app.use("/api/student", require("./routes/studentRoutes"));
-app.use("/api/teacher", require("./routes/teacherRoutes"));
+app.use("/api/", authRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/student", studentRoutes);
+app.use("/api/teacher", teacherRoutes);
 
 app.get("/", (req, res) => {
   res.send("server working");
 });
 
 app.use((req, res, next) => {
-  const HttpError = require("./models/HttpError");
   throw new HttpError("Could not find this route.", 404);
 });
 

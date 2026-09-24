@@ -1,9 +1,9 @@
-const HttpError = require("../../models/HttpError");
-const Class = require("../../models/classModel");
-const Student = require("../../models/studentModel");
-const Teacher = require("../../models/teacherModel");
-const Project = require("../../models/projectModel");
-const NoticeBoard = require("../../models/noticeBoardModel");
+import HttpError from "../../models/HttpError.js";
+import Class from "../../models/classModel.js";
+import Student from "../../models/studentModel.js";
+import Teacher from "../../models/teacherModel.js";
+import Project from "../../models/projectModel.js";
+import NoticeBoard from "../../models/noticeBoardModel.js";
 
 const getProjectFormData = async (req, res, next) => {
   const { classId, all } = req.query;
@@ -14,13 +14,13 @@ const getProjectFormData = async (req, res, next) => {
     } else {
       students = await Student.find(
         { classId: classId, assignedProjectId: null },
-        "name"
+        "name",
       );
     }
     myClass = await Class.findById(classId, "name maxAllowed minAllowed");
     supervisors = await Teacher.find(
       { assignedClassesForSupervision: myClass._id },
-      "name"
+      "name",
     );
     res.json({
       class: myClass.toObject({ getters: true }),
@@ -39,7 +39,7 @@ const loadAddSupervisorData = async (req, res, next) => {
   try {
     teachers = await Teacher.find(
       { assignedClassesForSupervision: { $ne: classId } },
-      "name"
+      "name",
     );
     // supervisors = await Teacher.find(
     //   { assignedClassesForSupervision: classId },
@@ -61,7 +61,7 @@ const loadAddExaminerData = async (req, res, next) => {
   try {
     teachers = await Teacher.find(
       { assignedClassesForExamination: { $ne: classId } },
-      "name"
+      "name",
     );
     // supervisors = await Teacher.find(
     //   { assignedClassesForSupervision: classId },
@@ -94,7 +94,7 @@ const loadNewNoticeFormData = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export default {
   getProjectFormData,
   loadAddSupervisorData,
   loadNewNoticeFormData,

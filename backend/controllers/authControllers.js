@@ -1,12 +1,12 @@
-const dotenv = require("dotenv");
-const fs = require("fs");
-const path = require("path");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-const HttpError = require("../models/HttpError");
+import "dotenv/config";
+import fs from "fs";
+import path from "path";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import HttpError from "../models/HttpError.js";
 
-const Student = require("../models/studentModel");
-const Teacher = require("../models/teacherModel");
+import Student from "../models/studentModel.js";
+import Teacher from "../models/teacherModel.js";
 
 const login = async (req, res, next) => {
   const { userID, loginAs, password } = req.body;
@@ -61,7 +61,7 @@ const login = async (req, res, next) => {
     const { user, idField } = await findUserByLoginAs(
       loginAs,
       loginAs === "Student" ? "rollNo" : "empId",
-      userID
+      userID,
     );
 
     if (!user) {
@@ -109,7 +109,7 @@ const updatePassword = async (req, res, next, Model) => {
 
     const isValidPassword = await bcrypt.compare(
       oldPassword,
-      userFound.password
+      userFound.password,
     );
     if (!isValidPassword) {
       return next(new HttpError("Invalid old password", 400));
@@ -120,7 +120,7 @@ const updatePassword = async (req, res, next, Model) => {
     await Model.findByIdAndUpdate(
       userId,
       { password: hashedPassword },
-      { new: true }
+      { new: true },
     );
 
     res.status(200).json({ message: "Password updated" });
@@ -152,7 +152,7 @@ const updateAdminPassword = async (req, res, next) => {
     // Update the value of the ADMIN_PASSWORD variable
     const updatedEnvContents = envContents.replace(
       /^ADMIN_PASSWORD=.*/m,
-      `ADMIN_PASSWORD=${newPassword}`
+      `ADMIN_PASSWORD=${newPassword}`,
     );
 
     // Write the updated contents back to the .env file
@@ -164,7 +164,7 @@ const updateAdminPassword = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export default {
   login,
   updateStudentPassword: (req, res, next) =>
     updatePassword(req, res, next, Student),

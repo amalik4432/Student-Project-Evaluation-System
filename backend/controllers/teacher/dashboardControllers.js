@@ -1,9 +1,9 @@
-const HttpError = require("../../models/HttpError");
-const NoticeBoard = require("../../models/noticeBoardModel");
-const Notification = require("../../models/notificationModel");
-const Teacher = require("../../models/teacherModel");
-const Project = require("../../models/projectModel");
-const Class = require("../../models/classModel");
+import HttpError from "../../models/HttpError.js";
+import NoticeBoard from "../../models/noticeBoardModel.js";
+import Notification from "../../models/notificationModel.js";
+import Teacher from "../../models/teacherModel.js";
+import Project from "../../models/projectModel.js";
+import Class from "../../models/classModel.js";
 
 const getDashboard = async (req, res, next) => {
   const { userId } = req.query;
@@ -72,8 +72,8 @@ const updateLimit = async (req, res, next) => {
       return next(
         new HttpError(
           "Can't assign new limit when projects assigned already more",
-          401
-        )
+          401,
+        ),
       );
     }
 
@@ -166,7 +166,7 @@ const getExaminationProjects = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export default {
   getDashboard,
   updateLimit,
   getSupervisionProjects,

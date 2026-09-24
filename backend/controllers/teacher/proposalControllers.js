@@ -1,5 +1,5 @@
-const HttpError = require("../../models/HttpError");
-const Project = require("../../models/projectModel");
+import HttpError from "../../models/HttpError.js";
+import Project from "../../models/projectModel.js";
 
 const proposalStatuses = [
   "under_review",
@@ -53,4 +53,4 @@ const reviewProposal = async (req, res, next) => {
   }
 };
 
-module.exports = { getProposalQueue, reviewProposal };
+export default { getProposalQueue, reviewProposal };

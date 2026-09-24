@@ -1,20 +1,20 @@
-const bcrypt = require("bcrypt");
-const mongoose = require("mongoose");
+import bcrypt from "bcrypt";
+import mongoose from "mongoose";
 const sourceDB = mongoose.createConnection(
-  "mongodb+srv://jamshaidjavaid:rollcasting@cluster0.hfeosn9.mongodb.net/externaledatabase?retryWrites=true&w=majority"
+  "mongodb+srv://jamshaidjavaid:rollcasting@cluster0.hfeosn9.mongodb.net/externaledatabase?retryWrites=true&w=majority",
 );
 
 const sourceStudentsCollection = sourceDB.collection("students");
 const sourceClassesCollection = sourceDB.collection("classes");
 
-const { validationResult } = require("express-validator");
+import { validationResult } from "express-validator";
 
-const HttpError = require("../../models/HttpError");
-const Class = require("../../models/classModel");
-const Student = require("../../models/studentModel");
-const Teacher = require("../../models/teacherModel");
-const Project = require("../../models/projectModel");
-const NoticeBoard = require("../../models/noticeBoardModel");
+import HttpError from "../../models/HttpError.js";
+import Class from "../../models/classModel.js";
+import Student from "../../models/studentModel.js";
+import Teacher from "../../models/teacherModel.js";
+import Project from "../../models/projectModel.js";
+import NoticeBoard from "../../models/noticeBoardModel.js";
 
 // ///////////////////////////////////////////////////////////////////////////////////////////
 // get all the classes
@@ -23,7 +23,7 @@ const getClasses = async (req, res, next) => {
   try {
     classes = await Class.find(
       {},
-      "name totalStudents totalProjects assignedSupervisors"
+      "name totalStudents totalProjects assignedSupervisors",
     );
     res.json({ classes: classes.map((n) => n.toObject({ getters: true })) });
   } catch (err) {
@@ -38,7 +38,7 @@ const createClass = async (req, res, next) => {
 
   if (!errors.isEmpty()) {
     return next(
-      new HttpError("Invalid inputs passed, please check your data.", 422)
+      new HttpError("Invalid inputs passed, please check your data.", 422),
     );
   }
 
@@ -57,7 +57,7 @@ const createClass = async (req, res, next) => {
     });
     if (!sourceClass) {
       return next(
-        new HttpError("Source class not found, so can't be created", 404)
+        new HttpError("Source class not found, so can't be created", 404),
       );
     }
 
@@ -116,7 +116,7 @@ const createClass = async (req, res, next) => {
       sess.endSession();
       console.error(err);
       return next(
-        new HttpError("Couldn't get top students, please try again later", 500)
+        new HttpError("Couldn't get top students, please try again later", 500),
       );
     }
     await sess.commitTransaction();
@@ -144,12 +144,12 @@ const deleteClass = async (req, res, next) => {
     await Teacher.updateMany(
       { assignedClassesForSupervision: myClass._id },
       { $pull: { assignedClassesForSupervision: myClass._id } },
-      { session: sess }
+      { session: sess },
     );
     await Teacher.updateMany(
       { assignedClassesForExamination: myClass._id },
       { $pull: { assignedClassesForExamination: myClass._id } },
-      { session: sess }
+      { session: sess },
     );
 
     const projectsToDelete = await Project.find({
@@ -163,14 +163,14 @@ const deleteClass = async (req, res, next) => {
           $inc: { assignedProjectsCount: -1 },
           $pull: { assignedProjects: project._id },
         },
-        { session: sess }
+        { session: sess },
       );
     }
 
     await Project.deleteMany({ classId: myClass._id }, { session: sess });
     await NoticeBoard.deleteMany(
       { receiverEntity: "class", receiverId: myClass._id },
-      { session: sess }
+      { session: sess },
     );
     await Student.deleteMany({ classId: myClass._id }, { session: sess });
     res.json({ message: "Deleted Successfully" });
@@ -181,7 +181,7 @@ const deleteClass = async (req, res, next) => {
     sess.endSession();
     console.error(err);
     return next(
-      new HttpError("Something went wrong, couldn't delete the class", 422)
+      new HttpError("Something went wrong, couldn't delete the class", 422),
     );
   }
 };
@@ -191,7 +191,7 @@ const getClassById = async (req, res, next) => {
 
   const myClass = await Class.findById(
     classId,
-    "name minAllowed maxAllowed timetable"
+    "name minAllowed maxAllowed timetable",
   );
 
   if (!myClass) {
@@ -203,23 +203,23 @@ const getClassById = async (req, res, next) => {
   try {
     projects = await Project.find(
       { classId: classId },
-      "title supervisorName supervisorId members status"
+      "title supervisorName supervisorId members status",
     );
     supervisors = await Teacher.find(
       {
         assignedClassesForSupervision: { $in: classId },
       },
-      "name empId assignedProjectsCount projectsLimit"
+      "name empId assignedProjectsCount projectsLimit",
     );
     examiners = await Teacher.find(
       {
         assignedClassesForExamination: { $in: classId },
       },
-      "name empId designation"
+      "name empId designation",
     );
     students = await Student.find(
       { classId: classId },
-      "name rollNo marks status hasTopped"
+      "name rollNo marks status hasTopped",
     );
     notices = await NoticeBoard.find({
       receiverEntity: "class",
@@ -237,7 +237,7 @@ const getClassById = async (req, res, next) => {
   } catch (err) {
     console.error(err);
     return next(
-      new HttpError("Something went wrong, couldn't load class", 500)
+      new HttpError("Something went wrong, couldn't load class", 500),
     );
   }
 };
@@ -278,13 +278,13 @@ const editTimeTable = async (req, res, next) => {
           deliverable2Evalutaion,
         },
       },
-      { runValidators: true, new: true }
+      { runValidators: true, new: true },
     );
     res.json({ updatedClass, message: "timetable has been updated" });
   } catch (err) {
     console.error(err);
     return next(
-      new HttpError("Something went wrong, or maybe class doesn't exists", 500)
+      new HttpError("Something went wrong, or maybe class doesn't exists", 500),
     );
   }
 };
@@ -328,7 +328,7 @@ const assignSupervisorToClass = async (req, res, next) => {
     });
     res.json({
       updatedSupervisors: updatedSupervisors.map((s) =>
-        s.toObject({ getters: true })
+        s.toObject({ getters: true }),
       ),
       message: "Class assigned to a supervisor",
     });
@@ -367,8 +367,8 @@ const assignExaminerToClass = async (req, res, next) => {
         return next(
           new HttpError(
             "Class already assigned to the teacher for examination",
-            400
-          )
+            400,
+          ),
         );
       }
 
@@ -386,7 +386,7 @@ const assignExaminerToClass = async (req, res, next) => {
     });
     res.json({
       updatedExaminers: updatedExaminers.map((e) =>
-        e.toObject({ getters: true })
+        e.toObject({ getters: true }),
       ),
       message: "Class assigned to an examiner",
     });
@@ -398,7 +398,7 @@ const assignExaminerToClass = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export default {
   getClasses,
   createClass,
   deleteClass,

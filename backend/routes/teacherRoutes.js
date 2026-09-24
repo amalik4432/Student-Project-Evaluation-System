@@ -1,35 +1,25 @@
-const express = require("express");
-const { body } = require("express-validator");
+import express from "express";
+import { body } from "express-validator";
+
+import dashboardControllers from "../controllers/teacher/dashboardControllers.js";
+import proposalControllers from "../controllers/teacher/proposalControllers.js";
+import supervisorRequestControllers from "../controllers/teacher/supervisorRequestControllers.js";
+import notesControllers from "../controllers/teacher/notesControllers.js";
+import notificationsControllers from "../controllers/teacher/notificationsControllers.js";
 
 const {
   getDashboard,
   updateLimit,
   getSupervisionProjects,
   getExaminationProjects,
-} = require("../controllers/teacher/dashboardControllers");
-const {
-  getProposalQueue,
-  reviewProposal,
-} = require("../controllers/teacher/proposalControllers");
-const {
-  getRequests,
-  updateRequest,
-} = require("../controllers/teacher/supervisorRequestControllers");
+} = dashboardControllers;
+const { getProposalQueue, reviewProposal } = proposalControllers;
+const { getRequests, updateRequest } = supervisorRequestControllers;
 
-// const {
-// } = require("../controllers/teacher/projectControllers");
+const { getNotes, createNote, deleteNote } = notesControllers;
 
-const {
-  getNotes,
-  createNote,
-  deleteNote,
-} = require("../controllers/teacher/notesControllers");
-
-const {
-  getNotifications,
-  createNotification,
-  deleteNotification,
-} = require("../controllers/teacher/notificationsControllers");
+const { getNotifications, createNotification, deleteNotification } =
+  notificationsControllers;
 
 const router = express.Router();
 
@@ -60,4 +50,4 @@ router.get("/notifications", getNotifications);
 router.post("/notifications/new-notification", createNotification);
 router.delete("/notifications/:notificationId/delete", deleteNotification);
 
-module.exports = router;
+export default router;

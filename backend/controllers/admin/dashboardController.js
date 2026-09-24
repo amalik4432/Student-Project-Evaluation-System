@@ -1,9 +1,9 @@
-const Class = require("../../models/classModel");
-const Student = require("../../models/studentModel");
-const Teacher = require("../../models/teacherModel");
-const Project = require("../../models/projectModel");
-const NoticeBoard = require("../../models/noticeBoardModel");
-const Notification = require("../../models/notificationModel");
+import Class from "../../models/classModel.js";
+import Student from "../../models/studentModel.js";
+import Teacher from "../../models/teacherModel.js";
+import Project from "../../models/projectModel.js";
+import NoticeBoard from "../../models/noticeBoardModel.js";
+import Notification from "../../models/notificationModel.js";
 
 const getDashboard = async (req, res, next) => {
   let projects, supervisors, students, notices, classes, notifications;
@@ -31,6 +31,6 @@ const getDashboard = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export default {
   getDashboard,
 };

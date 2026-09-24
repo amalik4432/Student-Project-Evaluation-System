@@ -1,8 +1,6 @@
-const dotenv = require("dotenv");
-const { promisify } = require("util");
-const jwt = require("jsonwebtoken");
-
-dotenv.config();
+import "dotenv/config";
+import { promisify } from "util";
+import jwt from "jsonwebtoken";
 
 const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -25,4 +23,4 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
-module.exports = verifyToken;
+export default verifyToken;
