@@ -1,0 +1,62 @@
+.container {
+  min-height: 88px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 28px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(241, 246, 242, 0.86);
+  backdrop-filter: blur(14px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.heading p {
+  color: var(--ink);
+  font-size: 1.02rem;
+}
+
+.heading strong {
+  color: var(--navy);
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.kicker {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ink-soft);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.role {
+  color: #7a8f92;
+  font-size: 0.7rem;
+}
+
+.notification {
+  height: 1.5rem;
+  width: auto;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 16px;
+  }
+  .role {
+    display: none;
+  }
+  .heading p {
+    font-size: 0.9rem;
+  }
+}

@@ -1,0 +1,186 @@
+.page {
+  max-width: 1180px;
+  padding: 28px 0;
+}
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 26px;
+}
+.eyebrow {
+  color: var(--coral);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.header h1 {
+  margin: 5px 0 8px;
+  color: var(--navy);
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  letter-spacing: -0.06em;
+}
+.header p,
+.meta {
+  color: var(--ink-soft);
+}
+.count {
+  padding: 8px 12px;
+  border-radius: 99px;
+  background: var(--mint);
+  color: var(--navy);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.grid {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.65fr) minmax(0, 1.35fr);
+  gap: 20px;
+}
+.list,
+.review {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--white);
+  box-shadow: var(--shadow);
+}
+.list {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+.item {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  text-align: left;
+  background: var(--paper);
+  color: var(--ink);
+}
+.item:hover,
+.selected {
+  border-color: var(--mint-strong);
+  background: #effbf6;
+  color: var(--ink);
+}
+.item strong {
+  font-family: "Space Grotesk", sans-serif;
+}
+.item span:not(.itemStatus),
+.item small {
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+}
+.itemStatus {
+  color: var(--coral);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.review {
+  padding: 26px;
+}
+.review h2 {
+  margin: 6px 0;
+  color: var(--navy);
+  font-size: 2rem;
+}
+.proposalText {
+  max-height: 250px;
+  margin: 20px 0;
+  padding: 16px;
+  overflow: auto;
+  border-left: 3px solid var(--mint-strong);
+  background: var(--paper);
+  color: var(--ink-soft);
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+.reviewForm {
+  display: grid;
+  gap: 14px;
+}
+.reviewForm label {
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.reviewForm button {
+  width: fit-content;
+  background: var(--navy);
+}
+.empty {
+  padding: 32px 16px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+.requests {
+  margin-top: 24px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--white);
+  box-shadow: var(--shadow);
+}
+.requests h2 {
+  margin: 5px 0 18px;
+  color: var(--navy);
+  font-size: 1.35rem;
+}
+.request {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+.request strong,
+.request span {
+  display: block;
+}
+.request span {
+  margin-top: 4px;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+.request small {
+  color: var(--ink-soft);
+  text-transform: capitalize;
+}
+.requestActions {
+  display: flex;
+  gap: 8px;
+}
+.requestActions button {
+  padding: 7px 10px;
+  font-size: 0.75rem;
+}
+.requestActions button:first-child {
+  background: var(--navy);
+}
+.requestActions button:last-child {
+  background: var(--coral);
+}
+@media (max-width: 760px) {
+  .header {
+    align-items: start;
+    flex-direction: column;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .request {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,15 @@
+.card {
+  background-color: white;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  display: inline-block;
+}
+
+.button {
+  cursor: pointer;
+}
+
+.button:hover {
+  box-shadow: 0 14px 30px rgba(20, 69, 60, 0.16);
+}
