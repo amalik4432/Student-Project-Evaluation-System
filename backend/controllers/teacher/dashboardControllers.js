@@ -1,56 +1,45 @@
 import HttpError from "../../models/HttpError.js";
 import NoticeBoard from "../../models/noticeBoardModel.js";
-import Notification from "../../models/notificationModel.js";
 import Teacher from "../../models/teacherModel.js";
 import Project from "../../models/projectModel.js";
-import Class from "../../models/classModel.js";
+import SupervisorRequest from "../../models/supervisorRequestModel.js";
+import InboxNotification from "../../models/inboxNotificationModel.js";
 
 const getDashboard = async (req, res, next) => {
-  const { userId } = req.query;
-  let notifications = [],
-    notices = [],
-    classesSupervision = 0,
-    classesExamination = 0,
-    projectsSupervision = 0,
-    projectsExamination = 0,
-    projectsSupervisionLimit = 0;
-
+  const userId = req.userId;
   try {
-    const teacher = await Teacher.findById(userId);
+    const teacher = await Teacher.findById(userId).select("-password -salt");
+    if (!teacher) return next(new HttpError("Couldn't find teacher", 401));
 
-    if (!teacher) {
-      return next(new HttpError("Couldn't find teacher", 401));
-    }
-
-    classesExamination = teacher.assignedClassesForExamination.length;
-    classesSupervision = teacher.assignedClassesForSupervision.length;
-    projectsSupervision = teacher.assignedProjectsCount;
-    projectsSupervisionLimit = teacher.projectsLimit;
-    let projectsAll = 0;
-    for (const aClass of teacher.assignedClassesForExamination) {
-      const myClassProjects = await Class.findById(aClass, "totalProjects");
-      if (myClassProjects.totalProjects) {
-        projectsAll += myClassProjects.totalProjects;
-      }
-    }
-
-    console.log(projectsAll);
-    notifications = await Notification.find({
-      senderId: userId,
+    const assignedProjects = await Project.find({ supervisorId: userId });
+    const pendingRequests = await SupervisorRequest.countDocuments({
+      teacherId: userId,
+      status: "pending",
     });
-    notices = await NoticeBoard.find({
+    const pendingProposals = assignedProjects.filter((p) =>
+      ["submitted", "under_review"].includes(p.proposalStatus),
+    ).length;
+    const notices = await NoticeBoard.find({
       receiverEntity: "teacher",
       receiverId: userId,
     });
+    const unreadCount = await InboxNotification.countDocuments({
+      recipientId: String(userId),
+      recipientRole: "Teacher",
+      read: false,
+    });
 
-    res.send({
+    res.json({
+      teacher,
       notices: notices.map((n) => n.toObject({ getters: true })),
-      notifications: notifications.map((n) => n.toObject({ getters: true })),
-      classesExamination,
-      classesSupervision,
-      projectsSupervision,
-      projectsSupervisionLimit,
-      projectsExamination: projectsAll,
+      classesExamination: teacher.assignedClassesForExamination.length,
+      classesSupervision: teacher.assignedClassesForSupervision.length,
+      projectsSupervision: assignedProjects.length,
+      projectsSupervisionLimit: teacher.projectsLimit,
+      pendingRequests,
+      pendingProposals,
+      unreadCount,
+      recentProjects: assignedProjects.slice(0, 6),
     });
   } catch (err) {
     console.error(err);
@@ -59,109 +48,81 @@ const getDashboard = async (req, res, next) => {
 };
 
 const updateLimit = async (req, res, next) => {
-  const { userId, limit } = req.body;
-
+  const { limit } = req.body;
   try {
-    const teacher = await Teacher.findById(userId);
-
-    if (!teacher) {
-      return next(new HttpError("Couldn't find teacher", 401));
-    }
-
+    const teacher = await Teacher.findById(req.userId);
+    if (!teacher) return next(new HttpError("Couldn't find teacher", 401));
     if (teacher.assignedProjectsCount > limit) {
       return next(
         new HttpError(
           "Can't assign new limit when projects assigned already more",
-          401,
+          400,
         ),
       );
     }
-
     teacher.projectsLimit = limit;
     await teacher.save();
-
-    res.send({
-      message: "Projects Limit Updated",
-    });
+    res.json({ message: "Projects Limit Updated" });
   } catch (err) {
-    console.error(err);
-    return next(new HttpError("Couldn't retrieve dashboard data", 500));
+    return next(new HttpError("Couldn't update limit", 500));
   }
 };
 
 const getSupervisionProjects = async (req, res, next) => {
-  const { userId } = req.query;
-
   try {
-    const teacher = await Teacher.findById(userId);
-
-    if (!teacher) {
-      return next(new HttpError("Couldn't find teacher", 400));
-    }
-
-    const classes = teacher.assignedClassesForSupervision;
-    const allClasses = [];
-    const allProjects = [];
-    for (const myClass of classes) {
-      const currentClass = await Class.findById(myClass);
-      allClasses.push({
-        id: currentClass._id,
-        name: currentClass.name,
-      });
-      const projects = await Project.find({
-        supervisorId: userId,
-        classId: currentClass._id,
-      });
-      allProjects.push({
-        className: currentClass.name,
-        classProjects: projects,
-      });
-    }
-
-    res.send({
-      allClasses,
-      allProjects,
+    const projects = await Project.find({ supervisorId: req.userId }).sort({
+      updatedAt: -1,
     });
+    res.json({ projects, allProjects: [{ className: "Assigned", classProjects: projects }] });
   } catch (err) {
-    console.error(err);
     return next(new HttpError("Couldn't retrieve projects data", 500));
   }
 };
 
-const getExaminationProjects = async (req, res, next) => {
-  const { userId } = req.query;
-
+const getAssignedStudents = async (req, res, next) => {
   try {
-    const teacher = await Teacher.findById(userId);
+    const projects = await Project.find({ supervisorId: req.userId });
+    const students = projects.flatMap((project) =>
+      project.memberNames.map((member) => ({
+        id: member.id,
+        name: member.name,
+        projectId: project._id,
+        projectTitle: project.title,
+        proposalStatus: project.proposalStatus,
+        status: project.status,
+      })),
+    );
+    res.json({ students, projects });
+  } catch (err) {
+    return next(new HttpError("Couldn't load assigned students", 500));
+  }
+};
 
-    if (!teacher) {
-      return next(new HttpError("Couldn't find teacher", 400));
-    }
+const getProjectDetail = async (req, res, next) => {
+  try {
+    const project = await Project.findOne({
+      _id: req.params.projectId,
+      supervisorId: req.userId,
+    });
+    if (!project) return next(new HttpError("Project not found", 404));
+    res.json({ project });
+  } catch (err) {
+    return next(new HttpError("Couldn't load project", 500));
+  }
+};
 
+const getExaminationProjects = async (req, res, next) => {
+  try {
+    const teacher = await Teacher.findById(req.userId);
+    if (!teacher) return next(new HttpError("Couldn't find teacher", 400));
     const classes = teacher.assignedClassesForExamination;
-    const allClasses = [];
     const allProjects = [];
     for (const myClass of classes) {
-      const currentClass = await Class.findById(myClass);
-      allClasses.push({
-        id: currentClass._id,
-        name: currentClass.name,
-      });
-      const projects = await Project.find({
-        classId: currentClass._id,
-      });
-      allProjects.push({
-        className: currentClass.name,
-        classProjects: projects,
-      });
+      const projects = await Project.find({ classId: myClass });
+      allProjects.push(...projects);
     }
-
-    res.send({
-      allClasses,
-      allProjects,
-    });
+    res.json({ projects: allProjects });
   } catch (err) {
-    console.error(err);
     return next(new HttpError("Couldn't retrieve projects data", 500));
   }
 };
@@ -171,4 +132,6 @@ export default {
   updateLimit,
   getSupervisionProjects,
   getExaminationProjects,
+  getAssignedStudents,
+  getProjectDetail,
 };

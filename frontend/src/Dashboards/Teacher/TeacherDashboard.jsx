@@ -4,13 +4,16 @@ import { useSelector } from "react-redux";
 
 import Dashboard from "./pages/Dashboard";
 
-import Sidebar from "../../Components/Navbar/Sidebar";
+import DashboardLayout from "../../layouts/DashboardLayout";
 import SupervisionProjects from "./pages/SupervisionProjects";
 import ExaminationProjects from "./pages/ExaminationProjects";
 import PersonalNotes from "./pages/PersonalNotes";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import ProposalQueue from "./pages/ProposalQueue";
+import Classes from "./pages/Classes";
+import ClassDetails from "./pages/ClassDetails";
+import ProjectFiles from "../../pages/ProjectFiles";
 
 const TeacherDashboard = (props) => {
   const { input } = useSelector((state) => state.login);
@@ -20,12 +23,15 @@ const TeacherDashboard = (props) => {
   };
 
   return (
-    <Sidebar user={user} links={props.links}>
+    <DashboardLayout>
       <Routes>
         <Route
           path="/"
           element={<Dashboard userId={user.id} userName={user.name} />}
         />
+        <Route path="/classes" element={<Classes />} />
+        <Route path="/classes/:classId" element={<ClassDetails />} />
+        <Route path="/files" element={<ProjectFiles />} />
         <Route
           path="/supervision-projects"
           element={
@@ -56,7 +62,7 @@ const TeacherDashboard = (props) => {
           userName={user.name}
         />
       </Routes>
-    </Sidebar>
+    </DashboardLayout>
   );
 };
 

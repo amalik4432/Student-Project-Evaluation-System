@@ -1,5 +1,6 @@
 import express from "express";
 import verifyToken from "../middlewares/verifyToken.js";
+import requireRole from "../middlewares/requireRole.js";
 import { body } from "express-validator";
 
 import dashboardController from "../controllers/admin/dashboardController.js";
@@ -8,97 +9,74 @@ import classesControllers from "../controllers/admin/classesControllers.js";
 import notificationsControllers from "../controllers/admin/notificationsControllers.js";
 import noticeBoardControllers from "../controllers/admin/noticeBoardControllers.js";
 import teachersControllers from "../controllers/admin/teachersControllers.js";
+import studentsControllers from "../controllers/admin/studentsControllers.js";
 import projectsControllers from "../controllers/admin/projectsControllers.js";
 import notesControllers from "../controllers/admin/notesControllers.js";
 import proposalControllers from "../controllers/admin/proposalControllers.js";
+import filesControllers from "../controllers/filesControllers.js";
+import feedbackControllers from "../controllers/feedbackControllers.js";
+import { projectFileUpload } from "../middlewares/upload.js";
 
-const { getDashboard } = dashboardController;
-const {
-  getProjectFormData,
-  loadAddSupervisorData,
-  loadNewNoticeFormData,
-  loadAddExaminerData,
-} = formControllers;
-// CLASSES
-const {
-  getClasses,
-  createClass,
-  getClassById,
-  editTimeTable,
-  assignSupervisorToClass,
-  assignExaminerToClass,
-  deleteClass,
-} = classesControllers;
-
-// NOTIFICATIONS
-const { getNotifications, createNotification, deleteNotification } =
-  notificationsControllers;
-
-// NOTICES
-const { createNotice, getNoticeBoard, deleteNotice } = noticeBoardControllers;
-
-// TEACHERS
-const {
-  getTeachers,
-  getTeacherById,
-  unAssignSupervisorToClass,
-  unAssignExaminerToClass,
-} = teachersControllers;
-
-// PROJECTS
-const {
-  createProject,
-  getAllProjects,
-  getProjectById,
-  updateProject,
-  deleteProject,
-} = projectsControllers;
-
-// PERSONAL NOTES
-const { getNotes, createNote, deleteNote } = notesControllers;
-const { getProposalOverview, approveProposal } = proposalControllers;
-
-// ///////////////////////////////////////////////////////////////////////////////////
 const router = express.Router();
+const guard = [verifyToken, requireRole("Admin")];
 
-router.get("/", getDashboard);
-router.get("/proposal-overview", verifyToken, getProposalOverview);
-router.patch("/proposal/:projectId/approve", verifyToken, approveProposal);
+router.get("/", ...guard, dashboardController.getDashboard);
+router.get(
+  "/proposal-overview",
+  ...guard,
+  proposalControllers.getProposalOverview,
+);
+router.patch(
+  "/proposal/:projectId/approve",
+  ...guard,
+  proposalControllers.approveProposal,
+);
+router.patch(
+  "/proposal/:projectId/decide",
+  ...guard,
+  proposalControllers.decideProposal,
+);
 
-// Notice Board Routes
-router.get("/notice-board", verifyToken, getNoticeBoard);
+router.get("/notice-board", ...guard, noticeBoardControllers.getNoticeBoard);
 router.post(
   "/notice-board/new-notice",
-  verifyToken,
+  ...guard,
   [
     body("headline").notEmpty().withMessage("Write Headline"),
     body("description").notEmpty().withMessage("Write description"),
     body("receiverEntity")
       .isIn(["class", "teacher"])
       .withMessage("Invalid reciever entity"),
-    body("receiverId")
-      .notEmpty()
-      .exists({ checkFalsy: true })
-      .withMessage("Invalid reciever id"),
+    body("receiverId").notEmpty().withMessage("Invalid reciever id"),
   ],
-  createNotice,
+  noticeBoardControllers.createNotice,
 );
-router.delete("/notice-board/:noticeId/delete", verifyToken, deleteNotice);
+router.delete(
+  "/notice-board/:noticeId/delete",
+  ...guard,
+  noticeBoardControllers.deleteNotice,
+);
 
-// Notification Routes
-router.get("/notifications", verifyToken, getNotifications);
-router.post("/notifications/new-notification", verifyToken, createNotification);
+router.get(
+  "/notifications",
+  ...guard,
+  notificationsControllers.getNotifications,
+);
+router.post(
+  "/notifications/new-notification",
+  ...guard,
+  notificationsControllers.createNotification,
+);
 router.delete(
   "/notifications/:notificationId/delete",
-  verifyToken,
-  deleteNotification,
+  ...guard,
+  notificationsControllers.deleteNotification,
 );
 
-// Classes Routes
-router.get("/classes", verifyToken, getClasses);
+router.get("/classes", ...guard, classesControllers.getClasses);
 router.post(
   "/classes/new-class",
-  verifyToken,
+  ...guard,
   [
     body("program").notEmpty().withMessage("Write program"),
     body("session").notEmpty().withMessage("choose session"),
@@ -106,85 +84,137 @@ router.post(
     body("minAllowed").notEmpty().withMessage("choose minAllowed"),
     body("maxAllowed").notEmpty().withMessage("choose maxAllowed"),
   ],
-  createClass,
+  classesControllers.createClass,
 );
-router.delete("/classes/:classId/delete", verifyToken, deleteClass);
-router.get("/classes/:classId", verifyToken, getClassById);
+router.delete(
+  "/classes/:classId/delete",
+  ...guard,
+  classesControllers.deleteClass,
+);
+router.get("/classes/:classId", ...guard, classesControllers.getClassById);
 router.patch(
   "/classes/:classId/edit-timetable",
-  verifyToken,
-  [
-    body("titleSubmission").notEmpty().isDate().withMessage("choose date"),
-    body("proposalSubmission").notEmpty().isDate().withMessage("choose date"),
-    body("proposalDefense").notEmpty().isDate().withMessage("choose date"),
-    body("deliverable1").notEmpty().isDate().withMessage("choose date"),
-    body("deliverable1Evalutaion")
-      .notEmpty()
-      .isDate()
-      .withMessage("choose date"),
-    body("deliverable2").notEmpty().isDate().withMessage("choose date"),
-    body("deliverable2Evalutaion")
-      .notEmpty()
-      .isDate()
-      .withMessage("choose date"),
-  ],
-  editTimeTable,
+  ...guard,
+  classesControllers.editTimeTable,
 );
 router.patch(
   "/classes/:classId/assign-supervisor",
-  verifyToken,
-  assignSupervisorToClass,
+  ...guard,
+  classesControllers.assignSupervisorToClass,
 );
 router.patch(
   "/classes/:classId/assign-examiner",
-  verifyToken,
-  assignExaminerToClass,
+  ...guard,
+  classesControllers.assignExaminerToClass,
 );
 
-// PROJECTS ROUTES
-router.get("/projects", verifyToken, getAllProjects);
+router.get("/projects", ...guard, projectsControllers.getAllProjects);
 router.post(
   "/projects/new-project",
-  verifyToken,
+  ...guard,
   [
     body("title").notEmpty().withMessage("Write title"),
     body("memberNames").notEmpty().isArray().withMessage("choose memberNames"),
-    body("supervisorName").notEmpty().withMessage("choose supervisor"),
-    body("supervisorId").notEmpty().withMessage("choose supervisor id"),
     body("classId").notEmpty().withMessage("choose class id"),
-    body("className").notEmpty().withMessage("choose class id"),
+    body("className").notEmpty().withMessage("choose class name"),
   ],
-  createProject,
+  projectsControllers.createProject,
 );
-router.get("/projects/:projectId", verifyToken, getProjectById);
-router.delete("/projects/:projectId/delete", verifyToken, deleteProject);
-router.patch("/projects/:projectId/edit", verifyToken, updateProject);
+router.get(
+  "/projects/:projectId",
+  ...guard,
+  projectsControllers.getProjectById,
+);
+router.delete(
+  "/projects/:projectId/delete",
+  ...guard,
+  projectsControllers.deleteProject,
+);
+router.patch(
+  "/projects/:projectId/edit",
+  ...guard,
+  projectsControllers.updateProject,
+);
 
-// TEACHERS ROUTES
-router.get("/teachers", verifyToken, getTeachers);
-router.get("/teachers/:teacherId", verifyToken, getTeacherById);
+router.get("/teachers", ...guard, teachersControllers.getTeachers);
+router.post("/teachers", ...guard, teachersControllers.createTeacher);
+router.get(
+  "/teachers/:teacherId",
+  ...guard,
+  teachersControllers.getTeacherById,
+);
+router.put("/teachers/:teacherId", ...guard, teachersControllers.updateTeacher);
+router.delete(
+  "/teachers/:teacherId",
+  ...guard,
+  teachersControllers.deleteTeacher,
+);
 router.patch(
   "/teachers/:teacherId/unassign-supervisor",
-  verifyToken,
+  ...guard,
   [body("classId").notEmpty().withMessage("choose class Id")],
-  unAssignSupervisorToClass,
+  teachersControllers.unAssignSupervisorToClass,
 );
 router.patch(
   "/teachers/:teacherId/unassign-examiner",
-  verifyToken,
+  ...guard,
   [body("classId").notEmpty().withMessage("choose class Id")],
-  unAssignExaminerToClass,
+  teachersControllers.unAssignExaminerToClass,
 );
 
-// NOTES ROUTES
-router.get("/personal-notes", verifyToken, getNotes);
-router.post("/personal-notes/new-note", verifyToken, createNote);
-router.delete("/personal-notes/:noteId/delete", verifyToken, deleteNote);
+router.get("/students", ...guard, studentsControllers.getStudents);
+router.post("/students", ...guard, studentsControllers.createStudent);
+router.get(
+  "/students/:studentId",
+  ...guard,
+  studentsControllers.getStudentById,
+);
+router.put("/students/:studentId", ...guard, studentsControllers.updateStudent);
+router.delete(
+  "/students/:studentId",
+  ...guard,
+  studentsControllers.deleteStudent,
+);
 
-// FORM ROUTES
-router.get("/forms/new-project/data", verifyToken, getProjectFormData);
-router.get("/forms/add-supervisor/data", verifyToken, loadAddSupervisorData);
-router.get("/forms/add-examiner/data", verifyToken, loadAddExaminerData);
-router.get("/forms/new-notice/data", verifyToken, loadNewNoticeFormData);
+router.get("/personal-notes", ...guard, notesControllers.getNotes);
+router.post("/personal-notes/new-note", ...guard, notesControllers.createNote);
+router.delete(
+  "/personal-notes/:noteId/delete",
+  ...guard,
+  notesControllers.deleteNote,
+);
+
+router.get(
+  "/forms/new-project/data",
+  ...guard,
+  formControllers.getProjectFormData,
+);
+router.get(
+  "/forms/add-supervisor/data",
+  ...guard,
+  formControllers.loadAddSupervisorData,
+);
+router.get(
+  "/forms/add-examiner/data",
+  ...guard,
+  formControllers.loadAddExaminerData,
+);
+router.get(
+  "/forms/new-notice/data",
+  ...guard,
+  formControllers.loadNewNoticeFormData,
+);
+
+router.get("/files", ...guard, filesControllers.listFiles);
+router.post(
+  "/files",
+  ...guard,
+  projectFileUpload.single("file"),
+  filesControllers.uploadFile,
+);
+router.get("/files/:fileId", ...guard, filesControllers.getFile);
+router.delete("/files/:fileId", ...guard, filesControllers.deleteFile);
+router.get("/feedback", ...guard, feedbackControllers.listFeedback);
+router.post("/feedback", ...guard, feedbackControllers.createFeedback);
 
 export default router;

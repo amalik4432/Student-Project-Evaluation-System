@@ -1,0 +1,146 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(480px, 0.95fr);
+  background: #f5f8f4;
+}
+.intro {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+  padding: 42px clamp(30px, 7vw, 100px);
+  color: #fff;
+  background: #0e302b;
+}
+.intro img {
+  width: 155px;
+  filter: brightness(0) invert(1);
+}
+.intro p,
+.heading > span {
+  color: #f29a68;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.intro h1 {
+  max-width: 590px;
+  color: #fff;
+  font-size: clamp(3rem, 5.8vw, 6rem);
+  letter-spacing: -0.06em;
+  line-height: 0.94;
+}
+.intro span {
+  max-width: 370px;
+  color: #b6cbc4;
+  line-height: 1.7;
+}
+.panel {
+  width: 100%;
+  max-width: 650px;
+  align-self: center;
+  padding: 58px clamp(28px, 7vw, 100px);
+}
+.heading h2 {
+  margin: 9px 0;
+  color: #17463e;
+  font-size: clamp(2.2rem, 4vw, 3.8rem);
+  letter-spacing: -0.06em;
+  line-height: 1;
+}
+.heading p {
+  color: #637b76;
+  font-size: 0.9rem;
+}
+.form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 28px;
+}
+.form label {
+  display: grid;
+  gap: 7px;
+  color: #193a35;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+.form input,
+.form select {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #d7e5de;
+  border-radius: 7px;
+  padding: 0 13px;
+  color: #193a35;
+  background: #fff;
+  outline: none;
+}
+.form input:focus,
+.form select:focus {
+  border-color: #4cae88;
+  box-shadow: 0 0 0 4px rgba(114, 217, 177, 0.16);
+}
+.wide,
+.form button {
+  grid-column: 1 / -1;
+}
+.form button {
+  min-height: 53px;
+  border: 0;
+  border-radius: 7px;
+  color: #fff;
+  background: #17463e;
+  cursor: pointer;
+  font-weight: 700;
+}
+.form button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+.error {
+  margin-top: 20px;
+  color: #ad3d32;
+  font-size: 0.82rem;
+}
+.login {
+  margin-top: 20px;
+  color: #637b76;
+  font-size: 0.82rem;
+  text-align: center;
+}
+.login a {
+  color: #28745d;
+  font-weight: 800;
+}
+@media (max-width: 760px) {
+  .page {
+    display: block;
+  }
+  .intro {
+    min-height: 340px;
+    padding: 26px 24px 30px;
+    gap: 55px;
+  }
+  .intro h1 {
+    font-size: clamp(2.8rem, 12vw, 4.5rem);
+  }
+  .intro span {
+    display: none;
+  }
+  .panel {
+    max-width: none;
+    padding: 42px 24px 52px;
+  }
+}
+@media (max-width: 480px) {
+  .form {
+    grid-template-columns: 1fr;
+  }
+  .wide,
+  .form button {
+    grid-column: auto;
+  }
+}

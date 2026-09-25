@@ -1,84 +1,56 @@
-import mongoose from "mongoose";
-
 import HttpError from "../../models/HttpError.js";
 import Notification from "../../models/notificationModel.js";
 import Teacher from "../../models/teacherModel.js";
+import { notify } from "../../utils/notify.js";
 
 const getNotifications = async (req, res, next) => {
-  const { userId } = req.query;
   try {
-    const notifications = await Notification.find({ senderId: userId });
+    const notifications = await Notification.find({ senderId: req.userId });
     res.json({
       notifications: notifications.map((n) => n.toObject({ getters: true })),
     });
   } catch (err) {
-    console.error(err);
-    return next(
-      new HttpError("Something went wrong, couldn't find notifications", 500),
-    );
+    return next(new HttpError("Couldn't find notifications", 500));
   }
 };
 
-// CREATING A NOte
 const createNotification = async (req, res, next) => {
-  const { headline, description, userId, userName } = req.body;
-
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
+  const { headline, description } = req.body;
   try {
-    const teacher = await Teacher.findById(userId);
-    if (!teacher) {
-      return next(new HttpError("This teacher doesn't exist", 404));
+    const teacher = await Teacher.findById(req.userId);
+    if (!teacher) return next(new HttpError("This teacher doesn't exist", 404));
+    if (!headline || !description) {
+      return next(new HttpError("Please provide headline and description", 400));
     }
-
-    if (!headline || !description || !userId || !userName) {
-      return next(new HttpError("Please provide all the credentials", 401));
-    }
-
-    const createdNotification = new Notification({
+    const createdNotification = await Notification.create({
       headline,
       description,
-      senderId: userId,
-      senderName: userName,
+      senderId: req.userId,
+      senderName: teacher.name,
     });
-    createdNotification.save({ session });
-    await session.commitTransaction();
-    session.endSession();
+    await notify({
+      recipientId: process.env.ADMIN_ID,
+      recipientRole: "Admin",
+      title: headline,
+      body: `${teacher.name}: ${description}`,
+      type: "system",
+      link: "/",
+    });
     res.json({
-      message: "Saved Successfully",
+      notification: createdNotification,
+      message: "Notification sent to administration",
     });
   } catch (error) {
-    console.error(error);
-    await session.abortTransaction();
-    session.endSession();
-    return next(
-      new HttpError("Something went wrong, couldn't save the note", 500),
-    );
+    return next(new HttpError("Couldn't save the notification", 500));
   }
 };
 
-//  delete A Notification
 const deleteNotification = async (req, res, next) => {
-  const { notificationId } = req.params;
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
-    await Notification.findByIdAndDelete(notificationId, { session });
-
-    await session.commitTransaction();
-    session.endSession();
-    res.json({
-      message: "Deleted Successfully",
-    });
+    await Notification.findByIdAndDelete(req.params.notificationId);
+    res.json({ message: "Deleted Successfully" });
   } catch (error) {
-    console.error(error);
-    await session.abortTransaction();
-    session.endSession();
-    return next(
-      new HttpError("Something went wrong, couldn't save the note", 500),
-    );
+    return next(new HttpError("Couldn't delete the notification", 500));
   }
 };
 

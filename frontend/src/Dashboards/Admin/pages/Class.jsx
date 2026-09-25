@@ -84,7 +84,14 @@ const Class = () => {
   const isFormValid =
     Object.values(formState).filter((val) => val === "").length === 0;
 
-  let timetable;
+  const timetable = pageState.myClass?.timetable
+    ? Object.fromEntries(
+        Object.entries(pageState.myClass.timetable).map(([key, value]) => [
+          key,
+          value ? new Date(value).toISOString().slice(0, 10) : "",
+        ]),
+      )
+    : initialState;
   useEffect(() => {
     const loadPage = async () => {
       const response = await ApiCall({
@@ -106,21 +113,6 @@ const Class = () => {
     loadPage();
   }, [classId, token]);
 
-  if (!isLoading) {
-    timetable = pageState.myClass.timetable;
-    const formatDate = (timestamp) => {
-      const date = new Date(timestamp);
-      return date.toISOString().slice(0, 10);
-    };
-
-    for (const key in timetable) {
-      if (timetable.hasOwnProperty(key)) {
-        const value = timetable[key];
-        timetable[key] = formatDate(value);
-      }
-    }
-  }
-
   // console.log("page rendered");
   // console.log(pageState);
 
@@ -128,7 +120,7 @@ const Class = () => {
     <div>
       {!isLoading && (
         <div className={classes["main-container"]}>
-          <div>
+          <div className={classes.content}>
             <p>Class: {pageState.myClass.name}</p>
             <hr />
             <ProjectTable

@@ -1,7 +1,6 @@
 import { Route, Routes } from "react-router-dom";
-import { useSelector } from "react-redux";
-
 import Classes from "./pages/Classes";
+import Students from "./pages/Students";
 import Teachers from "./pages/Teachers";
 import Projects from "./pages/Projects";
 import NoticeBoard from "./pages/NoticeBoard";
@@ -16,21 +15,18 @@ import CreateProject from "./pages/CreateProject";
 import Project from "./pages/Project";
 import EditProject from "./pages/EditProject";
 import ProposalOverview from "./pages/ProposalOverview";
-import Sidebar from "../../Components/Navbar/Sidebar";
+import DashboardLayout from "../../layouts/DashboardLayout";
+import ProjectFiles from "../../pages/ProjectFiles";
 
 const AdminDashboard = (props) => {
-  const { input } = useSelector((state) => state.login);
-  const user = {
-    name: input.userName,
-  };
-
   return (
-    <Sidebar user={user} links={props.links}>
+    <DashboardLayout>
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/classes/" element={<Classes />} />
         <Route path="/classes/new-class" element={<CreateClass />} />
         <Route path="/classes/:classId" element={<Class />} />
+        <Route path="/students" element={<Students />} />
         <Route path="/teachers/" element={<Teachers />} />
         <Route path="/teachers/:teacherId" element={<Teacher />} />
         <Route path="/projects/" element={<Projects />} />
@@ -42,9 +38,10 @@ const AdminDashboard = (props) => {
         <Route path="/personal-notes" element={<PersonalNotes />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/proposal-overview" element={<ProposalOverview />} />
+        <Route path="/files" element={<ProjectFiles />} />
         <Route path="*" element={<h1>Page Not Found!</h1>} />
       </Routes>
-    </Sidebar>
+    </DashboardLayout>
   );
 };
 

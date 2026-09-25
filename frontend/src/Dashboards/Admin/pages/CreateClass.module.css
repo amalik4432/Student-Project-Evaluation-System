@@ -1,6 +1,7 @@
 .container {
-  max-width: 700px;
+  width: min(100%, 760px);
   margin: 0 auto;
+  padding: 0 4px 32px;
 }
 
 .container h3 {
@@ -8,10 +9,10 @@
 }
 
 .form {
-  margin-top: 50px;
+  margin-top: 28px;
   display: grid;
-  grid-template-columns: 350px 350px;
-  column-gap: 50px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 22px;
   row-gap: 20px;
   align-items: flex-start;
 }
@@ -34,6 +35,17 @@
 }
 
 .container button {
-  max-height: 40px;
-  margin-top: 31px;
+  min-height: 42px;
+  margin-top: 26px;
+}
+
+@media (max-width: 620px) {
+  .form {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .container button {
+    margin-top: 4px;
+  }
 }

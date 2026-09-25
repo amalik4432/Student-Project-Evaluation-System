@@ -1,13 +1,15 @@
 .container {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: 0.4rem;
-  max-width: 16rem;
+  min-width: 0;
+  width: 100%;
 }
 
 .class {
-  padding: 1.5rem;
+  min-height: 190px;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -16,6 +18,7 @@
 }
 
 .headline {
+  overflow-wrap: anywhere;
   margin-bottom: 0.4rem;
   color: var(--coral);
 }
@@ -32,9 +35,10 @@
 
 .buttons {
   display: flex;
-  gap: 4rem;
-  /* justify-content: space-between; */
-  /* max-width: 13rem; */
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 0.25rem;
 }
 
 .icon {
@@ -48,4 +52,15 @@
 .icon:hover {
   color: red;
   transform: translateY(-3px);
+}
+
+@media (max-width: 480px) {
+  .class {
+    min-height: 170px;
+    padding: 1rem;
+  }
+
+  .buttons {
+    gap: 0.5rem;
+  }
 }

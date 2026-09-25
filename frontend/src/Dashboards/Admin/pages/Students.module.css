@@ -1,0 +1,151 @@
+.page {
+  display: grid;
+  gap: 20px;
+}
+.header,
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+.header h1,
+.panelHeader h2 {
+  margin: 0;
+  color: var(--ink);
+}
+.header > div:first-child > p:last-child {
+  margin-top: 7px;
+  color: var(--ink-soft);
+}
+.kicker {
+  margin: 0 0 6px;
+  color: #b75e39;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.count {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink-soft);
+  background: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.panel {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 12px 30px rgba(20, 69, 60, 0.05);
+}
+.form {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+.form input,
+.form select,
+.search {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0 11px;
+  color: var(--ink);
+  background: #fff;
+}
+.primary,
+.secondary,
+.actions button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 7px;
+  padding: 0 13px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.primary {
+  color: #fff;
+  background: var(--navy);
+}
+.secondary {
+  color: var(--navy);
+  background: var(--mint);
+}
+.search {
+  width: 220px;
+}
+.tableWrap {
+  margin-top: 18px;
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  padding: 13px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font-size: 0.84rem;
+}
+th {
+  color: var(--ink-soft);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+.actions button {
+  min-height: 32px;
+  color: var(--navy);
+  background: #e9f4ee;
+  font-size: 0.74rem;
+}
+.actions button:last-child {
+  color: #9b3028;
+  background: #fbe9e6;
+}
+.state,
+.error {
+  margin: 22px 0 0;
+  color: var(--ink-soft);
+}
+.error {
+  color: #a4372f;
+}
+.resetForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+@media (max-width: 900px) {
+  .form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .header,
+  .panelHeader {
+    flex-direction: column;
+  }
+  .form,
+  .resetForm {
+    grid-template-columns: 1fr;
+  }
+  .search {
+    width: 100%;
+  }
+  .panel {
+    padding: 16px;
+  }
+}

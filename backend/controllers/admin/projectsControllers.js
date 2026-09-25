@@ -28,23 +28,25 @@ const createProject = async (req, res, next) => {
   } = req.body;
 
   try {
-    const supervisor = await Teacher.findById(supervisorId);
+    const supervisor = supervisorId ? await Teacher.findById(supervisorId) : null;
     const myClass = await Class.findById(classId);
 
-    // Check if class exists or not
-    if (!supervisor.assignedClassesForSupervision.includes(classId)) {
-      return next(
-        new HttpError(
-          "Can't register Project, supervisor not assigned to class",
-          404,
-        ),
-      );
-    }
-
-    // Check if class exists or not
     if (!myClass) {
       return next(
         new HttpError("Can't register Project, Class doesn't exists", 404),
+      );
+    }
+
+    if (
+      supervisor &&
+      supervisor.assignedClassesForSupervision.length &&
+      !supervisor.assignedClassesForSupervision.map(String).includes(String(classId))
+    ) {
+      return next(
+        new HttpError(
+          "Can't register Project, supervisor not assigned to class",
+          400,
+        ),
       );
     }
 
@@ -74,8 +76,8 @@ const createProject = async (req, res, next) => {
     const project = new Project({
       title,
       memberNames,
-      supervisorName,
-      supervisorId,
+      supervisorName: supervisor?.name || supervisorName || "Unassigned",
+      supervisorId: supervisor?._id || null,
       classId,
       className,
       description,
@@ -83,9 +85,11 @@ const createProject = async (req, res, next) => {
 
     await project.save({ session: sess });
 
-    supervisor.assignedProjectsCount += 1;
-    supervisor.assignedProjects.push(project._id);
-    await supervisor.save({ session: sess });
+    if (supervisor) {
+      supervisor.assignedProjectsCount += 1;
+      supervisor.assignedProjects.push(project._id);
+      await supervisor.save({ session: sess });
+    }
 
     for (const student of allStudents) {
       await student.updateOne(
@@ -226,20 +230,29 @@ const deleteProject = async (req, res, next) => {
       return res.status(404).json({ message: "Project not found" });
     }
 
-    const supervisor = await Teacher.findById(project.supervisorId);
+    const supervisor = project.supervisorId
+      ? await Teacher.findById(project.supervisorId)
+      : null;
     const myClass = await Class.findById(project.classId);
     const students = await Student.find({ assignedProjectId: project._id });
 
-    supervisor.assignedProjectsCount -= 1;
-    supervisor.assignedProjects = supervisor.assignedProjects.pull(project._id);
-    await supervisor.save({ session: sess });
+    if (supervisor) {
+      supervisor.assignedProjectsCount = Math.max(
+        0,
+        supervisor.assignedProjectsCount - 1,
+      );
+      supervisor.assignedProjects.pull(project._id);
+      await supervisor.save({ session: sess });
+    }
 
     for (const student of students) {
       await student.updateOne({ assignedProjectId: null }, { session: sess });
     }
 
-    myClass.totalProjects -= 1;
-    await myClass.save({ session: sess });
+    if (myClass) {
+      myClass.totalProjects = Math.max(0, myClass.totalProjects - 1);
+      await myClass.save({ session: sess });
+    }
 
     await sess.commitTransaction();
     sess.endSession();

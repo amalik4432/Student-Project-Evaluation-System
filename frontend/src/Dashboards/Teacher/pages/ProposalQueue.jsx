@@ -144,7 +144,51 @@ const ProposalQueue = ({ userId, userName }) => {
                 {selected.className} · {selected.semester || "Semester not set"}
               </p>
               <div className={styles.proposalText}>
-                {selected.proposalText || "No proposal text submitted."}
+                <p>
+                  <strong>Problem statement:</strong>{" "}
+                  {selected.proposalDescription ||
+                    selected.proposalText ||
+                    "Not submitted."}
+                </p>
+                <p>
+                  <strong>Objectives:</strong>{" "}
+                  {selected.proposalObjectives || "Not submitted."}
+                </p>
+                <p>
+                  <strong>Scope:</strong>{" "}
+                  {selected.proposalScope || "Not submitted."}
+                </p>
+                <p>
+                  <strong>Methodology:</strong>{" "}
+                  {selected.proposalMethodology || "Not submitted."}
+                </p>
+                <p>
+                  <strong>Technologies:</strong>{" "}
+                  {selected.proposalTechnologies || "Not submitted."}
+                </p>
+                <p>
+                  <strong>Expected outcome:</strong>{" "}
+                  {selected.proposalExpectedOutcome || "Not submitted."}
+                </p>
+                {selected.proposalAttachments?.length > 0 && (
+                  <div className={styles.attachments}>
+                    <strong>Attachments</strong>
+                    {selected.proposalAttachments.map((file) =>
+                      file.data ? (
+                        <a
+                          href={file.data}
+                          target="_blank"
+                          rel="noreferrer"
+                          key={file._id || file.name}
+                        >
+                          {file.name}
+                        </a>
+                      ) : (
+                        <span key={file._id || file.name}>{file.name}</span>
+                      ),
+                    )}
+                  </div>
+                )}
               </div>
               <Form onSubmit={saveReview} className={styles.reviewForm}>
                 <Form.Group>

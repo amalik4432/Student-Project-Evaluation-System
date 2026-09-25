@@ -48,7 +48,13 @@ const Settings = (props) => {
 
       if (response && response.status === 200) {
         toast.success(response.response.message);
-        localStorage.clear();
+        await ApiCall({
+          params: {},
+          route: "logout",
+          verb: "post",
+          token,
+          baseurl: true,
+        });
 
         setTimeout(() => {
           window.location.reload();

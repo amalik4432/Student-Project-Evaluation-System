@@ -9,8 +9,6 @@ import Button from "../../../Components/UI/Button";
 
 import classes from "./Settings.module.css";
 
-let finalpasswords = {};
-
 const initialPasswordsState = {
   oldPassword: "",
   newPassword: "",
@@ -21,6 +19,7 @@ const Settings = (props) => {
   const { token, user_id } = useSelector((state) => state.login.input);
 
   const [passwords, setPasswords] = useState(initialPasswordsState);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -32,33 +31,37 @@ const Settings = (props) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    finalpasswords = passwords;
-    if (
-      passwords.newPassword.length >= 8 &&
-      passwords.newPassword === passwords.confirmPassword
-    ) {
-      console.log(finalpasswords);
-      const response = await ApiCall({
-        params: { ...finalpasswords, userId: user_id },
-        route: `teacher/update-password`,
-        verb: "put",
+    if (passwords.newPassword.length < 8) {
+      toast.error("New password must be at least 8 characters.");
+      return;
+    }
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      toast.error("New passwords do not match.");
+      return;
+    }
+    setIsSaving(true);
+    const response = await ApiCall({
+      params: { ...passwords, userId: user_id },
+      route: "teacher/update-password",
+      verb: "put",
+      token,
+      baseurl: true,
+    });
+    setIsSaving(false);
+    if (response?.status === 200) {
+      toast.success("Password updated. Please sign in again.");
+      setPasswords(initialPasswordsState);
+      await ApiCall({
+        params: {},
+        route: "logout",
+        verb: "post",
         token,
         baseurl: true,
       });
-
-      if (response && response.status === 200) {
-        toast.success(response.response.message);
-        localStorage.clear();
-
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      } else {
-        toast.error(response.response.message);
-      }
+      setTimeout(() => window.location.reload(), 800);
+    } else {
+      toast.error(response?.response?.message || "Could not update password.");
     }
-
-    setPasswords(initialPasswordsState);
   };
 
   return (
@@ -96,10 +99,9 @@ const Settings = (props) => {
                 required
               />
             </Form.Group>
-            {passwords.newPassword.length >= 8 &&
-              passwords.newPassword === passwords.confirmPassword && (
-                <Button type="submit">Save</Button>
-              )}
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? "Updating..." : "Update password"}
+            </Button>
           </Form>
         </div>
       </CustomCard>

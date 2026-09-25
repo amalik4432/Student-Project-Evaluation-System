@@ -18,6 +18,13 @@ const Submissions = ({ userId }) => {
   const { token } = useSelector((state) => state.login.input);
   const [proposal, setProposal] = useState(null);
   const [semester, setSemester] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [objectives, setObjectives] = useState("");
+  const [scope, setScope] = useState("");
+  const [methodology, setMethodology] = useState("");
+  const [technologies, setTechnologies] = useState("");
+  const [expectedOutcome, setExpectedOutcome] = useState("");
   const [proposalText, setProposalText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -26,6 +33,7 @@ const Submissions = ({ userId }) => {
   const [teachers, setTeachers] = useState([]);
   const [teacherId, setTeacherId] = useState("");
   const [requestMessage, setRequestMessage] = useState("");
+  const [requests, setRequests] = useState([]);
 
   const loadProposal = useCallback(async () => {
     const response = await ApiCall({
@@ -37,8 +45,16 @@ const Submissions = ({ userId }) => {
     });
     if (response.status === 200) {
       setProposal(response.response.proposal);
-      setSemester(response.response.proposal.semester || "");
-      setProposalText(response.response.proposal.text || "");
+      const loaded = response.response.proposal;
+      setTitle(loaded.title || "");
+      setSemester(loaded.semester || "");
+      setProposalText(loaded.text || "");
+      setDescription(loaded.description || "");
+      setObjectives(loaded.objectives || "");
+      setScope(loaded.scope || "");
+      setMethodology(loaded.methodology || "");
+      setTechnologies(loaded.technologies || "");
+      setExpectedOutcome(loaded.expectedOutcome || "");
     } else {
       setMessage(response.response?.message || "Could not load your proposal");
     }
@@ -57,35 +73,53 @@ const Submissions = ({ userId }) => {
       if (response.status === 200)
         setTeachers(response.response.teachers || []);
     });
-  }, [loadProposal, token]);
+    ApiCall({
+      params: { studentId: userId },
+      route: "student/supervisor-requests",
+      verb: "get",
+      token,
+      baseurl: true,
+    }).then((response) => {
+      if (response.status === 200)
+        setRequests(response.response.requests || []);
+    });
+  }, [loadProposal, token, userId]);
 
-  const readFiles = async (event) => {
+  const readFiles = (event) => {
     const files = Array.from(event.target.files || []);
-    const encoded = await Promise.all(
-      files.map(
-        (file) =>
-          new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () =>
-              resolve({
-                name: file.name,
-                type: file.type,
-                size: file.size,
-                data: reader.result,
-              });
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          }),
-      ),
-    );
-    setAttachments(encoded);
+    const invalid = files.find((file) => file.type !== "application/pdf");
+    const oversized = files.find((file) => file.size > 10 * 1024 * 1024);
+    if (invalid) {
+      setMessage("Only PDF documents can be attached.");
+      setAttachments([]);
+      return;
+    }
+    if (oversized) {
+      setMessage("Each PDF must be smaller than 10MB.");
+      setAttachments([]);
+      return;
+    }
+    setMessage("");
+    setAttachments(files);
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsSaving(true);
+    const payload = new FormData();
+    payload.append("studentId", userId);
+    payload.append("title", title);
+    payload.append("semester", semester);
+    payload.append("proposalText", proposalText);
+    payload.append("description", description);
+    payload.append("objectives", objectives);
+    payload.append("scope", scope);
+    payload.append("methodology", methodology);
+    payload.append("technologies", technologies);
+    payload.append("expectedOutcome", expectedOutcome);
+    attachments.forEach((file) => payload.append("attachments", file));
     const response = await ApiCall({
-      params: { studentId: userId, semester, proposalText, attachments },
+      params: payload,
       route: "student/proposal/submit",
       verb: "post",
       token,
@@ -109,6 +143,7 @@ const Submissions = ({ userId }) => {
     if (response.status === 201) {
       setTeacherId("");
       setRequestMessage("");
+      setRequests((current) => [response.response.request, ...current]);
     }
   };
 
@@ -135,7 +170,12 @@ const Submissions = ({ userId }) => {
             <Form className={styles.form} onSubmit={handleSubmit}>
               <Form.Group>
                 <Form.Label>Project title</Form.Label>
-                <Form.Control value={proposal.title} disabled />
+                <Form.Control
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="Name your project"
+                  required
+                />
               </Form.Group>
               <Form.Group>
                 <Form.Label>Semester</Form.Label>
@@ -146,13 +186,66 @@ const Submissions = ({ userId }) => {
                 />
               </Form.Group>
               <Form.Group>
-                <Form.Label>Proposal summary</Form.Label>
+                <Form.Label>Description / Problem Statement</Form.Label>
                 <Form.Control
                   as="textarea"
-                  rows={11}
-                  value={proposalText}
-                  onChange={(event) => setProposalText(event.target.value)}
-                  placeholder="Describe the problem, objectives, and expected outcome."
+                  rows={5}
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  placeholder="What problem does this project solve?"
+                  required
+                />
+              </Form.Group>
+              <Form.Group>
+                <Form.Label>Objectives</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={4}
+                  value={objectives}
+                  onChange={(event) => setObjectives(event.target.value)}
+                  placeholder="List measurable objectives."
+                  required
+                />
+              </Form.Group>
+              <Form.Group>
+                <Form.Label>Scope</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={4}
+                  value={scope}
+                  onChange={(event) => setScope(event.target.value)}
+                  placeholder="Define what is included and excluded."
+                  required
+                />
+              </Form.Group>
+              <Form.Group>
+                <Form.Label>Methodology</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={4}
+                  value={methodology}
+                  onChange={(event) => setMethodology(event.target.value)}
+                  placeholder="Explain how the project will be developed."
+                  required
+                />
+              </Form.Group>
+              <Form.Group>
+                <Form.Label>Technologies / Tools</Form.Label>
+                <Form.Control
+                  value={technologies}
+                  onChange={(event) => setTechnologies(event.target.value)}
+                  placeholder="e.g. React, Node.js, MongoDB"
+                  required
+                />
+              </Form.Group>
+              <Form.Group>
+                <Form.Label>Expected Outcome</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={4}
+                  value={expectedOutcome}
+                  onChange={(event) => setExpectedOutcome(event.target.value)}
+                  placeholder="Describe the expected result."
                   required
                 />
               </Form.Group>
@@ -162,7 +255,7 @@ const Submissions = ({ userId }) => {
                   type="file"
                   multiple
                   onChange={readFiles}
-                  accept=".pdf,.doc,.docx,.ppt,.pptx,.txt"
+                  accept="application/pdf,.pdf"
                 />
                 <small className={styles.fileHint}>
                   {attachments.length
@@ -240,6 +333,24 @@ const Submissions = ({ userId }) => {
             />
             <Button type="submit">Send request</Button>
           </Form>
+          <div className={styles.requestHistory}>
+            <h3>Request history</h3>
+            {!requests.length && <p>No supervisor requests yet.</p>}
+            {requests.map((request) => (
+              <div
+                className={styles.requestItem}
+                key={request._id || request.id}
+              >
+                <strong>{request.teacherName}</strong>
+                <span className={`${styles.status} ${styles[request.status]}`}>
+                  {request.status}
+                </span>
+                <small>
+                  {new Date(request.createdAt).toLocaleDateString()}
+                </small>
+              </div>
+            ))}
+          </div>
         </section>
       )}
     </div>

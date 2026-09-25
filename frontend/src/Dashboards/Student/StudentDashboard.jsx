@@ -4,12 +4,13 @@ import { useSelector } from "react-redux";
 
 import Dashboard from "./pages/Dashboard";
 import Project from "./pages/Project";
-import Sidebar from "../../Components/Navbar/Sidebar";
+import DashboardLayout from "../../layouts/DashboardLayout";
 import ProjectManagement from "./pages/ProjectManagement";
 import Submissions from "./pages/Submissions";
 import Settings from "./pages/Settings";
 import ChatMeetings from "./pages/ChatMeetings";
 import PersonalNotes from "./pages/PersonalNotes";
+import ProjectFiles from "../../pages/ProjectFiles";
 
 const StudentDashboard = (props) => {
   const { input } = useSelector((state) => state.login);
@@ -18,7 +19,7 @@ const StudentDashboard = (props) => {
     id: input.user_id,
   };
   return (
-    <Sidebar user={user} links={props.links}>
+    <DashboardLayout>
       <Routes>
         <Route path="/" element={<Dashboard userId={user.id} />} />
         <Route path="/my-project" element={<Project userId={user.id} />} />
@@ -27,6 +28,7 @@ const StudentDashboard = (props) => {
           element={<ProjectManagement userId={user.id} />}
         />
         <Route path="/submissions" element={<Submissions userId={user.id} />} />
+        <Route path="/files" element={<ProjectFiles />} />
         <Route
           path="/personal-notes"
           element={<PersonalNotes userId={user.id} />}
@@ -38,7 +40,7 @@ const StudentDashboard = (props) => {
         />
         <Route path="*" element={<h1>Page Not Found!</h1>} />
       </Routes>
-    </Sidebar>
+    </DashboardLayout>
   );
 };
 

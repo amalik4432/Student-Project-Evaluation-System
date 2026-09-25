@@ -23,7 +23,7 @@ const NoticeBoardComponent = (props) => {
   const { token } = useSelector((state) => state.login.input);
   const isAdmin = props.isAdmin;
   const [limit, setLimit] = useState(6);
-  const [notices, setNotices] = useState(props.notices);
+  const [notices, setNotices] = useState(props.notices ?? []);
   const [loadedData, setLoadedData] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -163,7 +163,7 @@ const NoticeBoardComponent = (props) => {
   };
 
   useEffect(() => {
-    setNotices(props.notices);
+    setNotices(props.notices ?? []);
   }, [props.notices]);
 
   const deleteNoticeHandler = async (id) => {

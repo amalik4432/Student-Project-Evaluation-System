@@ -37,103 +37,112 @@ const proposalAttachmentSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-const projectSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
-    maxlength: 255,
-  },
-  memberNames: [
-    {
-      name: {
-        type: String,
-        required: true,
-        maxlength: 255,
-      },
-      id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Student",
-        required: true,
-      },
-    },
-  ],
-  members: {
-    type: Number,
-    min: 1,
-  },
-  supervisorName: {
-    type: String,
-    required: true,
-    maxlength: 255,
-  },
-  supervisorId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Teacher",
-    required: true,
-  },
-  classId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Class",
-    required: true,
-  },
-  className: {
-    type: String,
-    required: true,
-    maxlength: 255,
-  },
-  status: {
-    type: String,
-    enum: ["in_progress", "completed", "passed", "failed"],
-    default: "in_progress",
-  },
-  submissions: [
-    {
+const projectSchema = new mongoose.Schema(
+  {
+    title: {
       type: String,
+      required: true,
       maxlength: 255,
     },
-  ],
-  description: {
-    type: String,
-    default: "",
-  },
-  semester: {
-    type: String,
-    default: "",
-    maxlength: 100,
-  },
-  proposalText: {
-    type: String,
-    default: "",
-    maxlength: 10000,
-  },
-  proposalStatus: {
-    type: String,
-    enum: [
-      "not_submitted",
-      "submitted",
-      "under_review",
-      "needs_revision",
-      "approved",
-      "rejected",
+    memberNames: [
+      {
+        name: {
+          type: String,
+          required: true,
+          maxlength: 255,
+        },
+        id: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Student",
+          required: true,
+        },
+      },
     ],
-    default: "not_submitted",
+    members: {
+      type: Number,
+      min: 1,
+    },
+    supervisorName: {
+      type: String,
+      default: "Unassigned",
+      maxlength: 255,
+    },
+    supervisorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Teacher",
+      default: null,
+    },
+    classId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Class",
+      required: true,
+    },
+    className: {
+      type: String,
+      required: true,
+      maxlength: 255,
+    },
+    status: {
+      type: String,
+      enum: ["in_progress", "completed", "passed", "failed"],
+      default: "in_progress",
+    },
+    submissions: [
+      {
+        type: String,
+        maxlength: 255,
+      },
+    ],
+    description: {
+      type: String,
+      default: "",
+    },
+    semester: {
+      type: String,
+      default: "",
+      maxlength: 100,
+    },
+    proposalText: {
+      type: String,
+      default: "",
+      maxlength: 10000,
+    },
+    proposalDescription: { type: String, default: "", maxlength: 5000 },
+    proposalObjectives: { type: String, default: "", maxlength: 5000 },
+    proposalScope: { type: String, default: "", maxlength: 5000 },
+    proposalMethodology: { type: String, default: "", maxlength: 5000 },
+    proposalTechnologies: { type: String, default: "", maxlength: 2000 },
+    proposalExpectedOutcome: { type: String, default: "", maxlength: 5000 },
+    proposalStatus: {
+      type: String,
+      enum: [
+        "not_submitted",
+        "submitted",
+        "under_review",
+        "needs_revision",
+        "approved",
+        "rejected",
+      ],
+      default: "not_submitted",
+    },
+    proposalSubmittedAt: { type: Date },
+    proposalReviewedAt: { type: Date },
+    proposalVersion: { type: Number, default: 0 },
+    proposalFeedback: { type: [proposalFeedbackSchema], default: [] },
+    proposalAttachments: { type: [proposalAttachmentSchema], default: [] },
+    aiFeedback: {
+      problemStatement: { type: String, default: "" },
+      objectives: { type: String, default: "" },
+      methodology: { type: String, default: "" },
+      scope: { type: String, default: "" },
+      missingPoints: { type: [String], default: [] },
+      overall: { type: String, default: "" },
+      generatedAt: { type: Date },
+    },
+    tasks: [taskSchema],
   },
-  proposalSubmittedAt: { type: Date },
-  proposalReviewedAt: { type: Date },
-  proposalVersion: { type: Number, default: 0 },
-  proposalFeedback: { type: [proposalFeedbackSchema], default: [] },
-  proposalAttachments: { type: [proposalAttachmentSchema], default: [] },
-  aiFeedback: {
-    problemStatement: { type: String, default: "" },
-    objectives: { type: String, default: "" },
-    methodology: { type: String, default: "" },
-    scope: { type: String, default: "" },
-    missingPoints: { type: [String], default: [] },
-    overall: { type: String, default: "" },
-    generatedAt: { type: Date },
-  },
-  tasks: [taskSchema],
-});
+  { timestamps: true },
+);
 
 projectSchema.path("memberNames").set(function (memberNames) {
   this.members = memberNames.length;

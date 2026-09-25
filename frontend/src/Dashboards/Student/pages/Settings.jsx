@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Form } from "react-bootstrap";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { useEffect, useState as useProfileState } from "react";
 
 import { ApiCall } from "../../../api/apiCall";
 import CustomCard from "../../../Components/UI/CustomCard";
@@ -21,6 +22,38 @@ const Settings = (props) => {
   const { token, user_id } = useSelector((state) => state.login.input);
 
   const [passwords, setPasswords] = useState(initialPasswordsState);
+  const [profile, setProfile] = useProfileState({ name: "", email: "" });
+  const [profileLoading, setProfileLoading] = useProfileState(true);
+
+  useEffect(() => {
+    ApiCall({
+      params: {},
+      route: "student/profile",
+      verb: "get",
+      token,
+      baseurl: true,
+    }).then((response) => {
+      if (response.status === 200)
+        setProfile({
+          name: response.response.student.name || "",
+          email: response.response.student.email || "",
+        });
+      setProfileLoading(false);
+    });
+  }, [token]);
+
+  const saveProfile = async (event) => {
+    event.preventDefault();
+    const response = await ApiCall({
+      params: profile,
+      route: "student/profile",
+      verb: "patch",
+      token,
+      baseurl: true,
+    });
+    if (response.status === 200) toast.success(response.response.message);
+    else toast.error(response.response?.message || "Could not update profile");
+  };
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -48,7 +81,13 @@ const Settings = (props) => {
 
       if (response && response.status === 200) {
         toast.success(response.response.message);
-        localStorage.clear();
+        await ApiCall({
+          params: {},
+          route: "logout",
+          verb: "post",
+          token,
+          baseurl: true,
+        });
 
         setTimeout(() => {
           window.location.reload();
@@ -65,6 +104,41 @@ const Settings = (props) => {
     <div className={classes["main-container"]}>
       <CustomCard>
         <div className={classes.container}>
+          <Form onSubmit={saveProfile} className={classes.form}>
+            <h4>Profile</h4>
+            <Form.Group controlId="profileName">
+              <Form.Label>Name</Form.Label>
+              <Form.Control
+                value={profile.name}
+                disabled={profileLoading}
+                onChange={(event) =>
+                  setProfile((current) => ({
+                    ...current,
+                    name: event.target.value,
+                  }))
+                }
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="profileEmail">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                value={profile.email}
+                disabled={profileLoading}
+                onChange={(event) =>
+                  setProfile((current) => ({
+                    ...current,
+                    email: event.target.value,
+                  }))
+                }
+                required
+              />
+            </Form.Group>
+            <Button type="submit" disabled={profileLoading}>
+              Save profile
+            </Button>
+          </Form>
           <Form onSubmit={handleSubmit} className={classes.form}>
             <Form.Group controlId="oldPassword">
               <Form.Label>Old Password</Form.Label>

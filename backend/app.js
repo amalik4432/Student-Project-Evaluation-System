@@ -1,13 +1,12 @@
 import "dotenv/config";
 
 import express from "express";
-import cors from "cors";
+import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
-import authRoutes from "./routes/authRoutes.js";
-import adminRoutes from "./routes/adminRoutes.js";
-import studentRoutes from "./routes/studentRoutes.js";
-import teacherRoutes from "./routes/teacherRoutes.js";
-import HttpError from "./models/HttpError.js";
+import cors from "cors";
+import apiRoutes from "./routes/index.js";
+import { corsOptions } from "./config/cors.js";
+import { errorHandler, notFoundHandler } from "./middlewares/errorHandler.js";
 
 process.on("uncaughtException", (error) => {
   if (error.code === "ECONNREFUSED" && error.syscall === "querySrv") {
@@ -21,40 +20,20 @@ process.on("uncaughtException", (error) => {
 
 const app = express();
 
-const corsOptions = {
-  origin: "*",
-  optionsSuccessStatus: 200,
-  methods: "GET,PUT,PATCH,POST,DELETE",
-};
-
-app.use(express.json());
+app.use(express.json({ limit: "12mb" }));
+app.use(cookieParser());
 app.use(cors(corsOptions));
 
-app.use("/api/", authRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/student", studentRoutes);
-app.use("/api/teacher", teacherRoutes);
+app.use("/api", apiRoutes);
 
 app.get("/", (req, res) => {
   res.send("server working");
 });
 
-app.use((req, res, next) => {
-  throw new HttpError("Could not find this route.", 404);
-});
+app.use(notFoundHandler);
+app.use(errorHandler);
 
-app.use((error, req, res, next) => {
-  if (res.headerSent) {
-    return next(error);
-  }
-
-  res.status(error.code || 500);
-  res.json({
-    message: error.message || "An unknown error occurred!",
-  });
-});
-
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {

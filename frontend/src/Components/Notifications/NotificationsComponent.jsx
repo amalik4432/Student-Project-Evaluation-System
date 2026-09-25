@@ -6,12 +6,15 @@ import classes from "./NotificationsComponent.module.css";
 
 const NotificationsComponent = (props) => {
   const [limit, setLimit] = useState(3);
+  const notifications = Array.isArray(props.notifications)
+    ? props.notifications
+    : [];
 
   const loadMoreHandler = () => {
     setLimit((prevlimit) => prevlimit + 3);
   };
 
-  const notificationItems = props.notifications.slice(0, limit).map((item) => {
+  const notificationItems = notifications.slice(0, limit).map((item) => {
     return <NotificationItem key={item.id} item={item} />;
   });
 
@@ -21,7 +24,7 @@ const NotificationsComponent = (props) => {
         <p className={classes.head}>Notifications</p>
         {!notificationItems.length && <p>There are no notifications to show</p>}
         {notificationItems}
-        {limit < props.notifications.length && (
+        {limit < notifications.length && (
           <p className={classes.load} onClick={loadMoreHandler}>
             Load More
           </p>

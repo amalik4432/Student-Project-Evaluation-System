@@ -1,17 +1,18 @@
 .container {
-  margin: 3rem 2rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3rem;
+  width: 100%;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  align-items: start;
+  gap: 1.25rem;
 }
 
 .add-class {
-  width: 10rem;
-  height: 10rem;
-  mix-blend-mode: multiply;
-  background-color: white;
-  box-shadow: 0px 0px 12px #00000029;
-  border-radius: 50%;
+  min-height: 190px;
+  width: 100%;
+  border: 1px dashed var(--mint-strong);
+  background: rgba(255, 255, 255, 0.76);
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -27,6 +28,21 @@
 }
 
 .plus {
-  font-size: 900%;
+  font-size: 4rem;
+  line-height: 1;
   color: var(--coral);
+}
+
+@media (max-width: 480px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+
+  .add-class {
+    min-height: 92px;
+  }
+
+  .plus {
+    font-size: 3rem;
+  }
 }

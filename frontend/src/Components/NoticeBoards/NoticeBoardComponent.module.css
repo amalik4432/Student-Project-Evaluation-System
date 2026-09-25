@@ -1,15 +1,18 @@
 .notice-container {
-  width: 22rem;
-  padding: 2rem 1rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 1.5rem clamp(0.85rem, 3vw, 1.25rem);
   display: flex;
   flex-direction: column;
-  /* justify-content: center; */
-  align-items: center;
+  align-items: stretch;
   gap: 1.2rem;
+  overflow-wrap: anywhere;
 }
 
 .wide {
-  width: 50rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .head {
@@ -29,6 +32,11 @@
 
 .notice-container button {
   width: 100%;
+}
+
+.notice-container > p {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .form {

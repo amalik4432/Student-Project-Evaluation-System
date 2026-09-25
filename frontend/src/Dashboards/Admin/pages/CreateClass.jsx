@@ -139,28 +139,23 @@ const CreateClass = () => {
             minAllowed: formData.minAllowed,
             maxAllowed: formData.maxAllowed,
           },
-          route: `admin//classes/new-class`,
+          route: `admin/classes/new-class`,
           verb: "post",
           token,
           baseurl: true,
         });
 
-        if (response.status === 200) {
+        if (response.status === 201) {
           toast.success(`${response.response.message}`);
+          setFormData((prevState) => ({ ...prevState, ...initialState }));
+          setIsLoading(true);
+          setTimeout(() => navigate(-1), 900);
         } else {
           toast.error(`${response.response.message}`);
         }
         console.log(response);
       };
       sendData();
-      setFormData((prevState) => ({
-        ...prevState,
-        ...initialState,
-      }));
-      setIsLoading(true);
-      setTimeout(() => {
-        navigate(-1);
-      }, 3000);
     }
   };
 
@@ -228,7 +223,7 @@ const CreateClass = () => {
                     <option key={index} value={option}>
                       {option}
                     </option>
-                  )
+                  ),
                 )}
               </Form.Control>
               <Form.Control.Feedback type="invalid">
@@ -251,7 +246,7 @@ const CreateClass = () => {
                     <option key={index} value={option}>
                       {option}
                     </option>
-                  )
+                  ),
                 )}
               </Form.Control>
               <Form.Control.Feedback type="invalid">

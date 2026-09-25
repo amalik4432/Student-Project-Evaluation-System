@@ -88,20 +88,8 @@ const LoginForm = () => {
             token: response.response.token,
             user_id: response.response.userId,
             userName: response.response.userName,
-          })
+          }),
         );
-        if (state.input.rememberMe) {
-          localStorage.setItem("userID", state.input.userID);
-          localStorage.setItem("user_id", response.response.userId);
-          localStorage.setItem("token", response.response.token);
-          localStorage.setItem("password", state.input.password);
-          localStorage.setItem("loginAs", state.input.loginAs);
-          localStorage.setItem("userName", response.response.userName);
-        } else {
-          localStorage.removeItem("userID");
-          localStorage.removeItem("password");
-          localStorage.removeItem("loginAs");
-        }
         toast.success(`${response.response.message}`);
       } else {
         toast.error(`${response.response.message}`);
@@ -185,10 +173,7 @@ const LoginForm = () => {
         <Row>
           <Form.Group as={Col}>
             <Form.Check
-              checked={
-                localStorage.getItem("userID") &&
-                localStorage.getItem("password")
-              }
+              checked={false}
               type="checkbox"
               id="rememberMe"
               label="Remember Password"

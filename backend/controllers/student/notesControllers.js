@@ -1,87 +1,48 @@
-import mongoose from "mongoose";
-
 import HttpError from "../../models/HttpError.js";
 import Student from "../../models/studentModel.js";
 
 const getNotes = async (req, res, next) => {
-  const { userId } = req.query;
-  let notes;
   try {
-    const student = await Student.findById(userId);
-    notes = student.notes;
-    res.json({ notes: notes.map((n) => n.toObject({ getters: true })) });
+    const student = await Student.findById(req.userId);
+    if (!student) return next(new HttpError("Student not found", 404));
+    res.json({
+      notes: student.notes.map((n) => n.toObject({ getters: true })),
+    });
   } catch (err) {
-    console.error(err);
     return next(
       new HttpError("Something went wrong, couldn't find notes", 500),
     );
   }
 };
 
-// CREATING A NOte
 const createNote = async (req, res, next) => {
-  const { note, userId } = req.body;
-
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
+  const { note } = req.body;
+  if (!note?.trim()) return next(new HttpError("Note cannot be empty", 400));
   try {
-    const student = await Student.findById(userId);
-    if (!student) {
-      return next(new HttpError("This student doesn't exist", 404));
-    }
-    const createdNote = {
-      note,
-    };
-    student.notes.push(createdNote);
-    await student.save({ session });
-
-    await session.commitTransaction();
-    session.endSession();
-    res.json({
-      message: "Saved Successfully",
-    });
+    const student = await Student.findById(req.userId);
+    if (!student) return next(new HttpError("This student doesn't exist", 404));
+    student.notes.push({ note: note.trim() });
+    await student.save();
+    res.json({ message: "Saved Successfully" });
   } catch (error) {
-    console.error(error);
-    await session.abortTransaction();
-    session.endSession();
     return next(
       new HttpError("Something went wrong, couldn't save the note", 500),
     );
   }
 };
 
-//  delete A NOte
 const deleteNote = async (req, res, next) => {
-  const { userId } = req.query;
-  const { noteId } = req.params;
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
     await Student.updateOne(
-      { _id: userId },
-      { $pull: { notes: { _id: noteId } } },
-      { session },
+      { _id: req.userId },
+      { $pull: { notes: { _id: req.params.noteId } } },
     );
-
-    await session.commitTransaction();
-    session.endSession();
-    res.json({
-      message: "Deleted Successfully",
-    });
+    res.json({ message: "Deleted Successfully" });
   } catch (error) {
-    console.error(error);
-    await session.abortTransaction();
-    session.endSession();
     return next(
-      new HttpError("Something went wrong, couldn't save the note", 500),
+      new HttpError("Something went wrong, couldn't delete the note", 500),
     );
   }
 };
 
-export default {
-  getNotes,
-  createNote,
-  deleteNote,
-};
+export default { getNotes, createNote, deleteNote };

@@ -1,29 +1,57 @@
-import Class from "../../models/classModel.js";
 import Student from "../../models/studentModel.js";
 import Teacher from "../../models/teacherModel.js";
 import Project from "../../models/projectModel.js";
+import Class from "../../models/classModel.js";
 import NoticeBoard from "../../models/noticeBoardModel.js";
-import Notification from "../../models/notificationModel.js";
+import SupervisorRequest from "../../models/supervisorRequestModel.js";
+import ProjectFile from "../../models/projectFileModel.js";
+import HttpError from "../../models/HttpError.js";
 
 const getDashboard = async (req, res, next) => {
-  let projects, supervisors, students, notices, classes, notifications;
   try {
-    classes = await Class.countDocuments();
-    projects = await Project.countDocuments();
-    supervisors = await Teacher.find({
-      assignedClassesForSupervision: { $ne: [] },
-    }).countDocuments();
-    students = await Student.countDocuments();
-    notices = await NoticeBoard.find();
-    notifications = await Notification.find();
+    const [
+      classes,
+      projects,
+      teachers,
+      students,
+      notices,
+      pendingProposals,
+      pendingRequests,
+      files,
+    ] = await Promise.all([
+      Class.countDocuments(),
+      Project.countDocuments(),
+      Teacher.countDocuments(),
+      Student.countDocuments(),
+      NoticeBoard.find().sort({ _id: -1 }).limit(8),
+      Project.countDocuments({
+        proposalStatus: { $in: ["submitted", "under_review"] },
+      }),
+      SupervisorRequest.countDocuments({ status: "pending" }),
+      ProjectFile.countDocuments(),
+    ]);
+
+    const recentProjects = await Project.find()
+      .select("title supervisorName proposalStatus status className createdAt")
+      .sort({ createdAt: -1 })
+      .limit(8);
+
+    const proposalSummary = await Project.aggregate([
+      { $group: { _id: "$proposalStatus", count: { $sum: 1 } } },
+    ]);
 
     res.json({
       classes,
       projects,
-      supervisors,
+      teachers,
+      supervisors: teachers,
       students,
+      pendingProposals,
+      pendingRequests,
+      files,
       notices: notices.map((n) => n.toObject({ getters: true })),
-      notifications: notifications.map((n) => n.toObject({ getters: true })),
+      recentProjects,
+      proposalSummary,
     });
   } catch (err) {
     console.error(err);
@@ -31,6 +59,4 @@ const getDashboard = async (req, res, next) => {
   }
 };
 
-export default {
-  getDashboard,
-};
+export default { getDashboard };

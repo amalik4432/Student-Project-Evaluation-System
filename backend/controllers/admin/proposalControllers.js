@@ -1,11 +1,12 @@
 import HttpError from "../../models/HttpError.js";
 import Project from "../../models/projectModel.js";
+import { notify } from "../../utils/notify.js";
 
 const getProposalOverview = async (req, res, next) => {
   try {
     const projects = await Project.find()
       .select(
-        "title className semester supervisorName memberNames proposalStatus proposalSubmittedAt proposalReviewedAt proposalVersion proposalFeedback proposalAttachments",
+        "title className semester supervisorName memberNames proposalStatus proposalSubmittedAt proposalReviewedAt proposalVersion proposalFeedback proposalAttachments proposalText proposalDescription proposalObjectives proposalScope proposalMethodology proposalTechnologies proposalExpectedOutcome",
       )
       .sort({ proposalStatus: 1, proposalSubmittedAt: -1 });
 
@@ -30,24 +31,57 @@ const getProposalOverview = async (req, res, next) => {
   }
 };
 
-const approveProposal = async (req, res, next) => {
-  const { adminName = "HOD", feedback = "Approved at department level" } =
-    req.body;
+const decideProposal = async (req, res, next) => {
+  const { status, feedback } = req.body;
+  if (!["approved", "rejected", "under_review"].includes(status)) {
+    return next(new HttpError("Invalid proposal decision", 400));
+  }
   try {
     const project = await Project.findById(req.params.projectId);
     if (!project) return next(new HttpError("Proposal not found", 404));
-    project.proposalStatus = "approved";
+    project.proposalStatus = status;
     project.proposalReviewedAt = new Date();
     project.proposalFeedback.push({
-      message: feedback,
-      authorName: adminName,
+      message: feedback?.trim() || `Proposal ${status} at department level`,
+      authorName: "Administrator",
       role: "Admin",
     });
     await project.save();
-    res.json({ project, message: "Proposal approved at department level" });
+
+    await Promise.all(
+      project.memberNames.map((member) =>
+        notify({
+          recipientId: member.id,
+          recipientRole: "Student",
+          title: `Proposal ${status}`,
+          body: `Department ${status} your proposal for ${project.title}.`,
+          type: "proposal",
+          link: "/proposals",
+        }),
+      ),
+    );
+    if (project.supervisorId) {
+      await notify({
+        recipientId: project.supervisorId,
+        recipientRole: "Teacher",
+        title: `Proposal ${status} by admin`,
+        body: `${project.title} was ${status} by the department.`,
+        type: "proposal",
+        link: "/proposals",
+      });
+    }
+
+    res.json({ project, message: `Proposal ${status}` });
   } catch (error) {
-    return next(new HttpError("Couldn't approve proposal", 500));
+    return next(new HttpError("Couldn't update proposal", 500));
   }
 };
 
-export default { getProposalOverview, approveProposal };
+export default {
+  getProposalOverview,
+  approveProposal: (req, res, next) => {
+    req.body.status = "approved";
+    return decideProposal(req, res, next);
+  },
+  decideProposal,
+};
