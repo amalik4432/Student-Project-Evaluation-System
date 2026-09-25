@@ -21,6 +21,21 @@ router.get("/profile", ...guard, profileControllers.getProfile);
 router.patch("/profile", ...guard, profileControllers.updateProfile);
 router.get("/project", ...guard, projectControllers.getProjectPage);
 router.post("/project", ...guard, projectControllers.createOrGetProject);
+router.post(
+  "/project/:projectId/member-requests",
+  ...guard,
+  projectControllers.createMemberRequest,
+);
+router.get(
+  "/project/member-requests",
+  ...guard,
+  projectControllers.getMemberRequests,
+);
+router.patch(
+  "/project/member-requests/:requestId",
+  ...guard,
+  projectControllers.decideMemberRequest,
+);
 router.patch(
   "/project/:projectId/edit",
   ...guard,

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { api } from "../../api/client";
 import NotificationItem from "./NotificationItem";
 import CustomCard from "../UI/CustomCard";
 
@@ -6,17 +7,20 @@ import classes from "./NotificationsComponent.module.css";
 
 const NotificationsComponent = (props) => {
   const [limit, setLimit] = useState(3);
+  const [inboxNotifications, setInboxNotifications] = useState([]);
+  useEffect(() => {
+    if (Array.isArray(props.notifications)) return;
+    api("/inbox").then((result) => {
+      if (result.ok) setInboxNotifications(result.data.notifications || []);
+    });
+  }, [props.notifications]);
+
   const notifications = Array.isArray(props.notifications)
     ? props.notifications
-    : [];
-
-  const loadMoreHandler = () => {
-    setLimit((prevlimit) => prevlimit + 3);
-  };
-
-  const notificationItems = notifications.slice(0, limit).map((item) => {
-    return <NotificationItem key={item.id} item={item} />;
-  });
+    : inboxNotifications;
+  const notificationItems = notifications
+    .slice(0, limit)
+    .map((item) => <NotificationItem key={item._id || item.id} item={item} />);
 
   return (
     <CustomCard>
@@ -25,7 +29,10 @@ const NotificationsComponent = (props) => {
         {!notificationItems.length && <p>There are no notifications to show</p>}
         {notificationItems}
         {limit < notifications.length && (
-          <p className={classes.load} onClick={loadMoreHandler}>
+          <p
+            className={classes.load}
+            onClick={() => setLimit((value) => value + 3)}
+          >
             Load More
           </p>
         )}

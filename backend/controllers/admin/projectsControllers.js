@@ -28,10 +28,14 @@ const createProject = async (req, res, next) => {
   } = req.body;
 
   try {
-    const supervisor = supervisorId ? await Teacher.findById(supervisorId) : null;
+    const supervisor = supervisorId
+      ? await Teacher.findById(supervisorId)
+      : null;
     const myClass = await Class.findById(classId);
 
     if (!myClass) {
+      await sess.abortTransaction();
+      sess.endSession();
       return next(
         new HttpError("Can't register Project, Class doesn't exists", 404),
       );
@@ -40,8 +44,12 @@ const createProject = async (req, res, next) => {
     if (
       supervisor &&
       supervisor.assignedClassesForSupervision.length &&
-      !supervisor.assignedClassesForSupervision.map(String).includes(String(classId))
+      !supervisor.assignedClassesForSupervision
+        .map(String)
+        .includes(String(classId))
     ) {
+      await sess.abortTransaction();
+      sess.endSession();
       return next(
         new HttpError(
           "Can't register Project, supervisor not assigned to class",
@@ -56,6 +64,8 @@ const createProject = async (req, res, next) => {
     const allStudentsExist = allStudents.length === memberNames.length;
 
     if (!allStudentsExist) {
+      await sess.abortTransaction();
+      sess.endSession();
       return res
         .status(400)
         .json({ message: "One or more students do not exist" });
@@ -67,6 +77,8 @@ const createProject = async (req, res, next) => {
     });
 
     if (isStudentAlreadyAssigned) {
+      await sess.abortTransaction();
+      sess.endSession();
       return res.status(400).json({
         message: "One or more students are already assigned to a project",
       });
@@ -163,40 +175,59 @@ const updateProject = async (req, res, next) => {
   const sess = await mongoose.startSession();
   sess.startTransaction();
 
-  const newSupervisor = await Teacher.findById(supervisorId);
-  if (!newSupervisor) {
-    return next(new HttpError("Your chosen supervisor doesn't exist", 404));
-  }
-
   try {
-    const project = await Project.findByIdAndUpdate(
-      projectId,
-      {
-        description,
-        title,
-        supervisorName,
-        supervisorId,
-      },
-      { new: false, session: sess },
-    );
+    const project = await Project.findById(projectId).session(sess);
 
     if (!project) {
+      await sess.abortTransaction();
+      sess.endSession();
       return res.status(404).json({ error: "Project not found" });
     }
 
-    if (!(project.supervisorId === newSupervisor._id)) {
-      const oldSupervisor = await Teacher.findById(project.supervisorId);
-      oldSupervisor.assignedProjectsCount -= 1;
-      oldSupervisor.assignedProjects.pull(project._id);
-      await oldSupervisor.save({ session: sess });
+    const supervisorChanged =
+      supervisorId !== undefined &&
+      String(project.supervisorId || "") !== String(supervisorId || "");
 
-      newSupervisor.assignedProjectsCount += 1;
-      newSupervisor.assignedProjects.push(project._id);
-      await newSupervisor.save({ session: sess });
+    if (supervisorChanged) {
+      const oldSupervisor = project.supervisorId
+        ? await Teacher.findById(project.supervisorId).session(sess)
+        : null;
+      const newSupervisor = supervisorId
+        ? await Teacher.findById(supervisorId).session(sess)
+        : null;
 
-      project.supervisorId = newSupervisor._id;
-      await project.save({ session: sess });
+      if (supervisorId && !newSupervisor) {
+        await sess.abortTransaction();
+        sess.endSession();
+        return next(new HttpError("Your chosen supervisor doesn't exist", 404));
+      }
+
+      if (oldSupervisor) {
+        oldSupervisor.assignedProjectsCount = Math.max(
+          0,
+          oldSupervisor.assignedProjectsCount - 1,
+        );
+        oldSupervisor.assignedProjects.pull(project._id);
+        await oldSupervisor.save({ session: sess });
+      }
+
+      if (newSupervisor) {
+        newSupervisor.assignedProjectsCount += 1;
+        newSupervisor.assignedProjects.push(project._id);
+        await newSupervisor.save({ session: sess });
+      }
+
+      project.supervisorId = newSupervisor?._id || null;
+      project.supervisorName =
+        newSupervisor?.name || supervisorName || "Unassigned";
     }
+
+    if (description !== undefined) project.description = description;
+    if (title !== undefined) project.title = title;
+    if (!supervisorChanged && supervisorName !== undefined) {
+      project.supervisorName = supervisorName;
+    }
+    await project.save({ session: sess });
 
     await sess.commitTransaction();
     sess.endSession();
@@ -227,6 +258,8 @@ const deleteProject = async (req, res, next) => {
     });
 
     if (!project) {
+      await sess.abortTransaction();
+      sess.endSession();
       return res.status(404).json({ message: "Project not found" });
     }
 

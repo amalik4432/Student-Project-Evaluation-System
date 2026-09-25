@@ -25,7 +25,9 @@ const noticeBoardSchema = new Schema({
   receiverId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: "Class" || "Teacher",
+    ref: function () {
+      return this.receiverEntity === "teacher" ? "Teacher" : "Class";
+    },
   },
 });
 

@@ -3,6 +3,7 @@ import Project from "../../models/projectModel.js";
 import { notify } from "../../utils/notify.js";
 
 const proposalStatuses = [
+  "submitted",
   "under_review",
   "needs_revision",
   "approved",
@@ -56,7 +57,7 @@ const reviewProposal = async (req, res, next) => {
           title: "Proposal review update",
           body: `Your proposal for ${project.title} is now ${status.replace("_", " ")}.`,
           type: "proposal",
-          link: "/proposals",
+          link: "/submissions",
         }),
       ),
     );

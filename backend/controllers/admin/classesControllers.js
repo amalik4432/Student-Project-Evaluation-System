@@ -65,7 +65,11 @@ const deleteClass = async (req, res, next) => {
       { _id: classId },
       { session: sess },
     );
-    if (!myClass) return next(new HttpError("Class not found", 404));
+    if (!myClass) {
+      await sess.abortTransaction();
+      sess.endSession();
+      return next(new HttpError("Class not found", 404));
+    }
 
     await Teacher.updateMany(
       { assignedClassesForSupervision: myClass._id },
@@ -111,7 +115,8 @@ const deleteClass = async (req, res, next) => {
 const getClassById = async (req, res, next) => {
   const { classId } = req.params;
   const myClass = await Class.findById(classId);
-  if (!myClass) return next(new HttpError("Your chosen class doesn't exist", 404));
+  if (!myClass)
+    return next(new HttpError("Your chosen class doesn't exist", 404));
 
   try {
     const projects = await Project.find(
@@ -193,11 +198,20 @@ const assignSupervisorToClass = async (req, res, next) => {
   sess.startTransaction();
   try {
     const foundClass = await Class.findById(classId);
-    if (!foundClass) return next(new HttpError("Class not found", 404));
+    if (!foundClass) {
+      await sess.abortTransaction();
+      sess.endSession();
+      return next(new HttpError("Class not found", 404));
+    }
     for (const supervisor of supervisors || []) {
       const foundTeacher = await Teacher.findById(supervisor.id);
-      if (!foundTeacher) return next(new HttpError("Teacher not found", 404));
-      if (foundTeacher.assignedClassesForSupervision.includes(classId)) continue;
+      if (!foundTeacher) {
+        await sess.abortTransaction();
+        sess.endSession();
+        return next(new HttpError("Teacher not found", 404));
+      }
+      if (foundTeacher.assignedClassesForSupervision.includes(classId))
+        continue;
       foundTeacher.assignedClassesForSupervision.push(classId);
       await foundTeacher.save({ session: sess });
       foundClass.assignedSupervisors += 1;
@@ -228,11 +242,20 @@ const assignExaminerToClass = async (req, res, next) => {
   sess.startTransaction();
   try {
     const foundClass = await Class.findById(classId);
-    if (!foundClass) return next(new HttpError("Class not found", 404));
+    if (!foundClass) {
+      await sess.abortTransaction();
+      sess.endSession();
+      return next(new HttpError("Class not found", 404));
+    }
     for (const examiner of examiners || []) {
       const foundTeacher = await Teacher.findById(examiner.id);
-      if (!foundTeacher) return next(new HttpError("Teacher not found", 404));
-      if (foundTeacher.assignedClassesForExamination.includes(classId)) continue;
+      if (!foundTeacher) {
+        await sess.abortTransaction();
+        sess.endSession();
+        return next(new HttpError("Teacher not found", 404));
+      }
+      if (foundTeacher.assignedClassesForExamination.includes(classId))
+        continue;
       foundTeacher.assignedClassesForExamination.push(classId);
       await foundTeacher.save({ session: sess });
       foundClass.assignedExaminers += 1;

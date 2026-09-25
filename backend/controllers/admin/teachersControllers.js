@@ -69,7 +69,9 @@ const getTeacherById = async (req, res, next) => {
 const createTeacher = async (req, res, next) => {
   const { name, empId, password, designation, projectsLimit } = req.body;
   if (!name?.trim() || !empId?.trim() || !password) {
-    return next(new HttpError("Name, employee ID, and password are required", 400));
+    return next(
+      new HttpError("Name, employee ID, and password are required", 400),
+    );
   }
   if (password.length < 8) {
     return next(new HttpError("Password should be at least 8 characters", 400));
@@ -85,7 +87,9 @@ const createTeacher = async (req, res, next) => {
       designation: designation || "Lecturer",
       projectsLimit: projectsLimit || 10,
     });
-    res.status(201).json({ teacher: publicTeacher(teacher), message: "Teacher created" });
+    res
+      .status(201)
+      .json({ teacher: publicTeacher(teacher), message: "Teacher created" });
   } catch (err) {
     return next(new HttpError("Couldn't create teacher", 500));
   }
@@ -106,7 +110,9 @@ const updateTeacher = async (req, res, next) => {
     if (projectsLimit) teacher.projectsLimit = projectsLimit;
     if (password) {
       if (password.length < 8) {
-        return next(new HttpError("Password should be at least 8 characters", 400));
+        return next(
+          new HttpError("Password should be at least 8 characters", 400),
+        );
       }
       const hashed = await hashPassword(password);
       teacher.password = hashed.password;
@@ -123,7 +129,9 @@ const deleteTeacher = async (req, res, next) => {
   try {
     const teacher = await Teacher.findById(req.params.teacherId);
     if (!teacher) return next(new HttpError("Teacher not found", 404));
-    const projects = await Project.countDocuments({ supervisorId: teacher._id });
+    const projects = await Project.countDocuments({
+      supervisorId: teacher._id,
+    });
     if (projects > 0) {
       return next(
         new HttpError("Reassign this teacher's projects before deleting", 400),
@@ -148,21 +156,38 @@ const unAssignSupervisorToClass = async (req, res, next) => {
   sess.startTransaction();
   try {
     const foundClass = await Class.findById(classId);
-    if (!foundClass) return next(new HttpError("Class not found", 404));
+    if (!foundClass) {
+      await sess.abortTransaction();
+      sess.endSession();
+      return next(new HttpError("Class not found", 404));
+    }
     const foundTeacher = await Teacher.findById(teacherId);
-    if (!foundTeacher) return next(new HttpError("Teacher not found", 404));
+    if (!foundTeacher) {
+      await sess.abortTransaction();
+      sess.endSession();
+      return next(new HttpError("Teacher not found", 404));
+    }
     if (!foundTeacher.assignedClassesForSupervision.includes(classId)) {
-      return next(new HttpError("Class already not assigned for supervision", 400));
+      await sess.abortTransaction();
+      sess.endSession();
+      return next(
+        new HttpError("Class already not assigned for supervision", 400),
+      );
     }
     const projects = await Project.find({ classId, supervisorId: teacherId });
     if (projects.length > 0) {
+      await sess.abortTransaction();
+      sess.endSession();
       return next(
         new HttpError("Supervisor is assigned to projects of the class", 400),
       );
     }
     foundTeacher.assignedClassesForSupervision.pull(classId);
     await foundTeacher.save({ session: sess });
-    foundClass.assignedSupervisors = Math.max(0, foundClass.assignedSupervisors - 1);
+    foundClass.assignedSupervisors = Math.max(
+      0,
+      foundClass.assignedSupervisors - 1,
+    );
     await foundClass.save({ session: sess });
     await sess.commitTransaction();
     sess.endSession();
@@ -185,15 +210,30 @@ const unAssignExaminerToClass = async (req, res, next) => {
   sess.startTransaction();
   try {
     const foundClass = await Class.findById(classId);
-    if (!foundClass) return next(new HttpError("Class not found", 404));
+    if (!foundClass) {
+      await sess.abortTransaction();
+      sess.endSession();
+      return next(new HttpError("Class not found", 404));
+    }
     const foundTeacher = await Teacher.findById(teacherId);
-    if (!foundTeacher) return next(new HttpError("Teacher not found", 404));
+    if (!foundTeacher) {
+      await sess.abortTransaction();
+      sess.endSession();
+      return next(new HttpError("Teacher not found", 404));
+    }
     if (!foundTeacher.assignedClassesForExamination.includes(classId)) {
-      return next(new HttpError("Class already not assigned for examination", 400));
+      await sess.abortTransaction();
+      sess.endSession();
+      return next(
+        new HttpError("Class already not assigned for examination", 400),
+      );
     }
     foundTeacher.assignedClassesForExamination.pull(classId);
     await foundTeacher.save({ session: sess });
-    foundClass.assignedExaminers = Math.max(0, foundClass.assignedExaminers - 1);
+    foundClass.assignedExaminers = Math.max(
+      0,
+      foundClass.assignedExaminers - 1,
+    );
     await foundClass.save({ session: sess });
     await sess.commitTransaction();
     sess.endSession();

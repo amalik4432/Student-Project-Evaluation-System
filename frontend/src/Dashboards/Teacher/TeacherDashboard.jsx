@@ -6,7 +6,6 @@ import Dashboard from "./pages/Dashboard";
 
 import DashboardLayout from "../../layouts/DashboardLayout";
 import SupervisionProjects from "./pages/SupervisionProjects";
-import ExaminationProjects from "./pages/ExaminationProjects";
 import PersonalNotes from "./pages/PersonalNotes";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
@@ -41,12 +40,6 @@ const TeacherDashboard = (props) => {
         <Route
           path="/proposal-queue"
           element={<ProposalQueue userId={user.id} userName={user.name} />}
-        />
-        <Route
-          path="/examination-projects"
-          element={
-            <ExaminationProjects userId={user.id} userName={user.name} />
-          }
         />
         <Route
           path="/notifications"

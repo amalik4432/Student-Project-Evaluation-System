@@ -1,6 +1,7 @@
 .main-container {
   display: flex;
   justify-content: center;
+  width: 100%;
 }
 
 .container {
@@ -9,12 +10,22 @@
   flex-direction: column;
   align-items: center;
   gap: 1.3rem;
-  width: 50rem;
+  width: min(50rem, 100%);
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
 }
 
 .form {
-  width: 20rem;
+  width: min(20rem, 100%);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 1rem;
+  }
 }

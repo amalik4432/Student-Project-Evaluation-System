@@ -44,6 +44,12 @@ const projectSchema = new mongoose.Schema(
       required: true,
       maxlength: 255,
     },
+    subject: {
+      type: String,
+      default: "",
+      maxlength: 255,
+      trim: true,
+    },
     memberNames: [
       {
         name: {
@@ -98,9 +104,9 @@ const projectSchema = new mongoose.Schema(
       default: "",
     },
     semester: {
-      type: String,
-      default: "",
-      maxlength: 100,
+      type: Number,
+      min: 1,
+      max: 8,
     },
     proposalText: {
       type: String,

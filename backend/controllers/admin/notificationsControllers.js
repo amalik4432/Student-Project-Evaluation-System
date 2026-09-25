@@ -46,7 +46,6 @@ const createNotification = async (req, res, next) => {
   });
 
   try {
-    console.log(createdNotification);
     await createdNotification.save({ session });
     await session.commitTransaction();
     session.endSession();

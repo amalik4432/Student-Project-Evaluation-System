@@ -138,25 +138,13 @@ const Teachers = () => {
     }
   };
 
-  let teachersProfiles;
-
-  if (!isLoading) {
-    const filteredTeachers =
-      teachers?.filter(
-        (teacher) =>
-          teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          teacher.empId.toLowerCase().includes(searchQuery.toLowerCase()),
-      ) || [];
-
-    teachersProfiles =
-      filteredTeachers.length > 0 ? (
-        filteredTeachers.map((teacher) => {
-          return <TeacherComponent key={teacher.id} teacher={teacher} />;
-        })
-      ) : (
-        <p>No teachers to show</p>
-      );
-  }
+  const filteredTeachers =
+    teachers?.filter((teacher) => {
+      const name = teacher.name?.toLowerCase() || "";
+      const empId = teacher.empId?.toLowerCase() || "";
+      const query = searchQuery.toLowerCase();
+      return name.includes(query) || empId.includes(query);
+    }) || [];
 
   return (
     <div>
@@ -261,17 +249,24 @@ const Teachers = () => {
             </Form>
           </div>
           <div className={classes.teachers}>
-            {filteredTeachers.map((teacher) => (
-              <div
-                className={classes.teacherEntry}
-                key={teacher.id || teacher._id}
-              >
-                <TeacherComponent teacher={teacher} />
-                <Button type="button" onClick={() => setResetTeacher(teacher)}>
-                  Reset password
-                </Button>
-              </div>
-            ))}
+            {filteredTeachers.length ? (
+              filteredTeachers.map((teacher) => (
+                <div
+                  className={classes.teacherEntry}
+                  key={teacher.id || teacher._id}
+                >
+                  <TeacherComponent teacher={teacher} />
+                  <Button
+                    type="button"
+                    onClick={() => setResetTeacher(teacher)}
+                  >
+                    Reset password
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <p>No teachers to show</p>
+            )}
           </div>
         </div>
       )}

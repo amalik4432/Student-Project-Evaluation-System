@@ -54,6 +54,26 @@
   background: #e7ebea;
   color: var(--ink-soft);
 }
+.statusPanel {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 20px;
+  padding: 16px 18px;
+  border-left: 4px solid var(--coral);
+  border-radius: 10px;
+  background: #fff8f3;
+}
+.statusPanel strong {
+  color: var(--navy);
+  font-size: 1.05rem;
+}
+.statusPanel span:last-child {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+.rejectionNotice p {
+  margin: 4px 0 0;
+}
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.7fr);

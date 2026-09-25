@@ -13,3 +13,6 @@ button:hover {
   background-color: var(--coral);
   color: white;
 }
+.danger {
+  background-color: #a6493c;
+}

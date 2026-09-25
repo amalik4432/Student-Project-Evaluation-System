@@ -10,7 +10,6 @@ import Submissions from "./pages/Submissions";
 import Settings from "./pages/Settings";
 import ChatMeetings from "./pages/ChatMeetings";
 import PersonalNotes from "./pages/PersonalNotes";
-import ProjectFiles from "../../pages/ProjectFiles";
 
 const StudentDashboard = (props) => {
   const { input } = useSelector((state) => state.login);
@@ -28,7 +27,6 @@ const StudentDashboard = (props) => {
           element={<ProjectManagement userId={user.id} />}
         />
         <Route path="/submissions" element={<Submissions userId={user.id} />} />
-        <Route path="/files" element={<ProjectFiles />} />
         <Route
           path="/personal-notes"
           element={<PersonalNotes userId={user.id} />}

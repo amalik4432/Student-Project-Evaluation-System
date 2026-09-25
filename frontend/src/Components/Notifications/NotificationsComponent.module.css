@@ -1,11 +1,13 @@
 .notification-container {
-  width: 38rem;
-  padding: 2rem 1rem;
+  width: min(100%, 38rem);
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  /* justify-content: center; */
-  align-items: center;
+  align-items: stretch;
   gap: 1.2rem;
+  border: 1px solid var(--line, #d9e1e8);
+  border-radius: 12px;
+  background: #fff;
 }
 
 .head {
@@ -21,4 +23,10 @@
 
 .load:hover {
   color: rgba(39, 125, 255, 1);
+}
+
+@media (max-width: 600px) {
+  .notification-container {
+    padding: 1rem;
+  }
 }

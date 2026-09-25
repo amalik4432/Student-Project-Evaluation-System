@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Form } from "react-bootstrap";
+import { Alert, Form } from "react-bootstrap";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
@@ -8,8 +8,6 @@ import CustomCard from "../../../Components/UI/CustomCard";
 import Button from "../../../Components/UI/Button";
 
 import classes from "./Settings.module.css";
-
-let finalpasswords = {};
 
 const initialPasswordsState = {
   oldPassword: "",
@@ -32,36 +30,11 @@ const Settings = (props) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    finalpasswords = passwords;
     if (
       passwords.newPassword.length >= 8 &&
       passwords.newPassword === passwords.confirmPassword
     ) {
-      console.log(finalpasswords);
-      const response = await ApiCall({
-        params: { ...finalpasswords, userId: user_id },
-        route: `admin/update-password`,
-        verb: "put",
-        token,
-        baseurl: true,
-      });
-
-      if (response && response.status === 200) {
-        toast.success(response.response.message);
-        await ApiCall({
-          params: {},
-          route: "logout",
-          verb: "post",
-          token,
-          baseurl: true,
-        });
-
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      } else {
-        toast.error(response.response.message);
-      }
+      toast.info("Admin credentials are managed in the server environment.");
     }
 
     setPasswords(initialPasswordsState);
@@ -71,6 +44,9 @@ const Settings = (props) => {
     <div className={classes["main-container"]}>
       <CustomCard>
         <div className={classes.container}>
+          <Alert variant="info">
+            Admin password changes are managed by the deployment environment.
+          </Alert>
           <Form onSubmit={handleSubmit} className={classes.form}>
             <Form.Group controlId="oldPassword">
               <Form.Label>Old Password</Form.Label>

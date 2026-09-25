@@ -26,7 +26,6 @@ export const ADMIN_NAV = [
     name: "Proposals",
     icon: <MdOutlineAssessment />,
   },
-  { path: "/files", name: "Project Files", icon: <MdFolder /> },
   { path: "/notice-board", name: "Notices", icon: <MdOutlineEventNote /> },
   { path: "/settings", name: "Settings", icon: <MdOutlineSettingsSuggest /> },
 ];
@@ -41,11 +40,6 @@ export const TEACHER_NAV = [
     icon: <HiOutlineDocumentText />,
   },
   { path: "/files", name: "Project Files", icon: <MdFolder /> },
-  {
-    path: "/examination-projects",
-    name: "Examinations",
-    icon: <GiSpaceShuttle />,
-  },
   { path: "/notifications", name: "Notifications", icon: <MdNotifications /> },
   { path: "/settings", name: "Settings", icon: <MdOutlineSettingsSuggest /> },
 ];

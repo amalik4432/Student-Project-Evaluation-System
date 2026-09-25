@@ -17,6 +17,7 @@ const ProposalOverview = () => {
   const { token } = useSelector((state) => state.login.input);
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [busyId, setBusyId] = useState("");
   const approve = async (projectId) => {
     const response = await ApiCall({
       params: {},
@@ -38,6 +39,37 @@ const ProposalOverview = () => {
             : project,
         ),
       }));
+  };
+  const decide = async (projectId, status) => {
+    const feedback =
+      status === "rejected"
+        ? window.prompt("Why is this proposal rejected?", "") || ""
+        : "";
+    setBusyId(projectId);
+    const response = await ApiCall({
+      params: { status, feedback },
+      route: `admin/proposal/${projectId}/decide`,
+      verb: "patch",
+      token,
+      baseurl: true,
+    });
+    setBusyId("");
+    if (response.status === 200) {
+      setData((current) => ({
+        ...current,
+        projects: current.projects.map((project) =>
+          project._id === projectId
+            ? {
+                ...project,
+                proposalStatus: status,
+                proposalReviewedAt: new Date().toISOString(),
+              }
+            : project,
+        ),
+      }));
+    } else {
+      setError(response.response?.message || `Could not ${status} proposal`);
+    }
   };
   useEffect(() => {
     ApiCall({
@@ -113,9 +145,21 @@ const ProposalOverview = () => {
                   {["submitted", "under_review", "needs_revision"].includes(
                     project.proposalStatus,
                   ) && (
-                    <Button onClick={() => approve(project._id)}>
-                      Approve
-                    </Button>
+                    <div className={styles.actions}>
+                      <Button
+                        disabled={busyId === project._id}
+                        onClick={() => approve(project._id)}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        disabled={busyId === project._id}
+                        variant="danger"
+                        onClick={() => decide(project._id, "rejected")}
+                      >
+                        Reject
+                      </Button>
+                    </div>
                   )}
                 </td>
               </tr>

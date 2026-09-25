@@ -57,31 +57,31 @@ const classSchema = new mongoose.Schema({
   timetable: {
     titleSubmission: {
       type: Date,
-      default: Date.now() + 7 * 24 * 60 * 60 * 1000, // set the default value to 7 days ahead of the current date
+      default: () => Date.now() + 7 * 24 * 60 * 60 * 1000,
     },
     proposalSubmission: {
       type: Date,
-      default: Date.now() + 25 * 24 * 60 * 60 * 1000, // set the default value to 25 days ahead of the current date
+      default: () => Date.now() + 25 * 24 * 60 * 60 * 1000,
     },
     proposalDefense: {
       type: Date,
-      default: Date.now() + 30 * 24 * 60 * 60 * 1000, // set the default value to 30 days ahead of the current date
+      default: () => Date.now() + 30 * 24 * 60 * 60 * 1000,
     },
     deliverable1: {
       type: Date,
-      default: Date.now() + 90 * 24 * 60 * 60 * 1000, // set the default value to 90 days ahead of the current date
+      default: () => Date.now() + 90 * 24 * 60 * 60 * 1000,
     },
     deliverable1Evalutaion: {
       type: Date,
-      default: Date.now() + 105 * 24 * 60 * 60 * 1000, // set the default value to 105 days ahead of the current date
+      default: Date.now() + 105 * 24 * 60 * 60 * 1000,
     },
     deliverable2: {
       type: Date,
-      default: Date.now() + 200 * 24 * 60 * 60 * 1000, // set the default value to 200 days ahead of the current date
+      default: () => Date.now() + 200 * 24 * 60 * 60 * 1000,
     },
     deliverable2Evalutaion: {
       type: Date,
-      default: Date.now() + 220 * 24 * 60 * 60 * 1000, // set the default value to 220 days ahead of the current date
+      default: () => Date.now() + 220 * 24 * 60 * 60 * 1000,
     },
   },
 });

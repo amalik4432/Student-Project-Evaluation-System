@@ -70,10 +70,30 @@ const updateLimit = async (req, res, next) => {
 
 const getSupervisionProjects = async (req, res, next) => {
   try {
+    const teacher = await Teacher.findById(req.userId).select(
+      "assignedClassesForSupervision",
+    );
     const projects = await Project.find({ supervisorId: req.userId }).sort({
       updatedAt: -1,
     });
-    res.json({ projects, allProjects: [{ className: "Assigned", classProjects: projects }] });
+    const classes = teacher
+      ? await Class.find({
+          _id: { $in: teacher.assignedClassesForSupervision },
+        })
+          .select("_id name")
+          .sort({ name: 1 })
+      : [];
+    const projectsByClass = classes.map((classRecord) => ({
+      className: classRecord.name,
+      classProjects: projects.filter(
+        (project) => String(project.classId) === String(classRecord._id),
+      ),
+    }));
+    res.json({
+      projects,
+      allClasses: classes,
+      allProjects: projectsByClass,
+    });
   } catch (err) {
     return next(new HttpError("Couldn't retrieve projects data", 500));
   }

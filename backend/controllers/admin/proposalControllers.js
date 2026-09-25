@@ -56,7 +56,7 @@ const decideProposal = async (req, res, next) => {
           title: `Proposal ${status}`,
           body: `Department ${status} your proposal for ${project.title}.`,
           type: "proposal",
-          link: "/proposals",
+          link: "/submissions",
         }),
       ),
     );
@@ -67,7 +67,7 @@ const decideProposal = async (req, res, next) => {
         title: `Proposal ${status} by admin`,
         body: `${project.title} was ${status} by the department.`,
         type: "proposal",
-        link: "/proposals",
+        link: "/proposal-queue",
       });
     }
 

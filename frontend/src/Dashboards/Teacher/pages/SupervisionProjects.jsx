@@ -25,8 +25,8 @@ function SupervisionProjects({ userId }) {
 
     if (response && response.status === 200) {
       setIsLoading(false);
-      setClasses(response.response.allClasses);
-      setAllProjects(response.response.allProjects);
+      setClasses(response.response.allClasses || []);
+      setAllProjects(response.response.allProjects || []);
     } else {
       console.log(response);
       setIsLoading(false);
@@ -44,7 +44,6 @@ function SupervisionProjects({ userId }) {
           <Row>
             <Col sm={8}>
               {allProjects.map((data, index) => {
-                console.log(data);
                 return (
                   <Project
                     key={index}
@@ -79,8 +78,7 @@ function SupervisionProjects({ userId }) {
   );
 }
 
-function Project({ projects, className }) {
-  console.log(projects, className);
+function Project({ projects = [], className }) {
   const showProjects = projects.map((project, index) => {
     return (
       <Col key={index}>

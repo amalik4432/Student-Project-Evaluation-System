@@ -5,6 +5,8 @@ import Student from "../../models/studentModel.js";
 import Project from "../../models/projectModel.js";
 import Feedback from "../../models/feedbackModel.js";
 import ProjectFile from "../../models/projectFileModel.js";
+import ProjectMemberRequest from "../../models/projectMemberRequestModel.js";
+import { notify } from "../../utils/notify.js";
 
 const getProjectPage = async (req, res, next) => {
   const studentId = req.userId;
@@ -79,13 +81,14 @@ const editProjectDescription = async (req, res, next) => {
 };
 
 const createOrGetProject = async (req, res, next) => {
-  const { title, description, semester } = req.body;
+  const { title, description, semester, subject } = req.body;
   try {
     const student = await Student.findById(req.userId);
     if (!student) return next(new HttpError("Student not found", 404));
 
     let project = await Project.findOne({
       memberNames: { $elemMatch: { id: student._id } },
+      ...(subject?.trim() ? { subject: subject.trim() } : {}),
     });
     if (project) {
       return res.json({ project, message: "Project already exists" });
@@ -96,8 +99,9 @@ const createOrGetProject = async (req, res, next) => {
 
     project = await Project.create({
       title: title?.trim() || `${student.name}'s Final Year Project`,
+      subject: subject?.trim() || "",
       description: description || "",
-      semester: semester || "",
+      ...(semester ? { semester: Number(semester) } : {}),
       memberNames: [{ name: student.name, id: student._id }],
       supervisorName: "Unassigned",
       classId: klass._id,
@@ -116,8 +120,135 @@ const createOrGetProject = async (req, res, next) => {
   }
 };
 
+const createMemberRequest = async (req, res, next) => {
+  const { identifier, message = "" } = req.body;
+  try {
+    const [project, requester] = await Promise.all([
+      Project.findOne({
+        _id: req.params.projectId,
+        memberNames: { $elemMatch: { id: req.userId } },
+      }),
+      Student.findById(req.userId),
+    ]);
+    if (!project || !requester)
+      return next(new HttpError("Project not found", 404));
+    if (!identifier?.trim())
+      return next(
+        new HttpError(
+          "Enter an email, roll number, or registration number",
+          400,
+        ),
+      );
+
+    const student = await Student.findOne({
+      $or: [
+        { email: identifier.trim().toLowerCase() },
+        { rollNo: identifier.trim() },
+        { registrationNo: identifier.trim() },
+      ],
+    });
+    if (!student)
+      return next(new HttpError("No student matches that identifier", 404));
+    if (String(student._id) === String(requester._id))
+      return next(new HttpError("You are already in this project", 400));
+    if (
+      project.memberNames.some(
+        (member) => String(member.id) === String(student._id),
+      )
+    )
+      return next(new HttpError("That student is already a group member", 409));
+
+    const pending = await ProjectMemberRequest.findOne({
+      projectId: project._id,
+      studentId: student._id,
+      status: "pending",
+    });
+    if (pending)
+      return next(new HttpError("An invitation is already pending", 409));
+
+    const request = await ProjectMemberRequest.create({
+      projectId: project._id,
+      requesterId: requester._id,
+      requesterName: requester.name,
+      studentId: student._id,
+      studentName: student.name,
+      message,
+    });
+    await notify({
+      recipientId: student._id,
+      recipientRole: "Student",
+      title: "Project group invitation",
+      body: `${requester.name} invited you to join ${project.title}.`,
+      type: "project",
+      link: "/my-project",
+    });
+    res.status(201).json({ request, message: "Invitation sent for approval" });
+  } catch (error) {
+    return next(new HttpError("Couldn't send group invitation", 500));
+  }
+};
+
+const getMemberRequests = async (req, res, next) => {
+  try {
+    const requests = await ProjectMemberRequest.find({
+      studentId: req.userId,
+      status: "pending",
+    }).sort({ createdAt: -1 });
+    res.json({ requests });
+  } catch (error) {
+    return next(new HttpError("Couldn't load group invitations", 500));
+  }
+};
+
+const decideMemberRequest = async (req, res, next) => {
+  const { status } = req.body;
+  if (!["approved", "rejected"].includes(status))
+    return next(new HttpError("Invalid invitation decision", 400));
+  try {
+    const request = await ProjectMemberRequest.findOne({
+      _id: req.params.requestId,
+      studentId: req.userId,
+      status: "pending",
+    });
+    if (!request) return next(new HttpError("Invitation not found", 404));
+    request.status = status;
+    await request.save();
+
+    if (status === "approved") {
+      const project = await Project.findById(request.projectId);
+      const student = await Student.findById(req.userId);
+      if (
+        project &&
+        student &&
+        !project.memberNames.some(
+          (member) => String(member.id) === String(student._id),
+        )
+      ) {
+        project.memberNames.push({ name: student.name, id: student._id });
+        await project.save();
+        student.assignedProjectId = project._id;
+        await student.save();
+      }
+    }
+    await notify({
+      recipientId: request.requesterId,
+      recipientRole: "Student",
+      title: `Project invitation ${status}`,
+      body: `${request.studentName} ${status} the invitation for your project.`,
+      type: "project",
+      link: "/my-project",
+    });
+    res.json({ message: `Invitation ${status}` });
+  } catch (error) {
+    return next(new HttpError("Couldn't update group invitation", 500));
+  }
+};
+
 export default {
   getProjectPage,
   editProjectDescription,
   createOrGetProject,
+  createMemberRequest,
+  getMemberRequests,
+  decideMemberRequest,
 };

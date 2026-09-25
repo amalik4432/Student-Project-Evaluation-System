@@ -105,6 +105,14 @@ td small {
   background: var(--mint);
   color: var(--navy);
 }
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.danger {
+  background: #a6493c;
+}
 @media (max-width: 900px) {
   .metrics {
     grid-template-columns: repeat(3, 1fr);

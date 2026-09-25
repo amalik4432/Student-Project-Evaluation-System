@@ -39,16 +39,22 @@ const generateAiFeedback = (text) => {
   };
 };
 
-const findStudentProject = (studentId) =>
-  Project.findOne({ memberNames: { $elemMatch: { id: studentId } } });
+const findStudentProject = (studentId, subject) =>
+  Project.findOne({
+    memberNames: { $elemMatch: { id: studentId } },
+    ...(subject?.trim() ? { subject: subject.trim() } : {}),
+  });
 
 const ensureProject = async (student, extras = {}) => {
-  let project = await findStudentProject(student._id);
+  let project = await findStudentProject(student._id, extras.subject);
   if (project) return project;
   const klass = await Class.findById(student.classId);
   if (!klass) throw new Error("Student class not found");
   project = await Project.create({
     title: extras.title || `${student.name}'s Final Year Project`,
+    subject: extras.subject?.trim() || "",
+    supervisorId: extras.teacherId || null,
+    supervisorName: extras.teacherName || "Unassigned",
     description: extras.description || "",
     semester: extras.semester || "",
     memberNames: [{ name: student.name, id: student._id }],
@@ -67,7 +73,7 @@ const getProposal = async (req, res, next) => {
   try {
     const student = await Student.findById(req.userId);
     if (!student) return next(new HttpError("Student not found", 404));
-    const project = await findStudentProject(req.userId);
+    const project = await findStudentProject(req.userId, req.query.subject);
     if (!project) {
       return res.json({
         proposal: {
@@ -92,6 +98,7 @@ const getProposal = async (req, res, next) => {
       proposal: {
         id: project._id,
         title: project.title,
+        subject: project.subject,
         semester: project.semester,
         text: project.proposalText,
         description: project.proposalDescription,
@@ -110,6 +117,7 @@ const getProposal = async (req, res, next) => {
         ),
         aiFeedback: project.aiFeedback,
         supervisorName: project.supervisorName,
+        supervisorId: project.supervisorId,
       },
     });
   } catch (error) {
@@ -129,6 +137,8 @@ const submitProposal = async (req, res, next) => {
     methodology,
     technologies,
     expectedOutcome,
+    subject,
+    teacherId,
   } = req.body;
   const combinedText = [
     description,
@@ -145,13 +155,34 @@ const submitProposal = async (req, res, next) => {
       new HttpError("Project title and proposal content are required", 400),
     );
   }
+  const semesterNumber = Number(semester);
+  if (
+    !Number.isInteger(semesterNumber) ||
+    semesterNumber < 1 ||
+    semesterNumber > 8
+  ) {
+    return next(
+      new HttpError("Semester must be a number between 1 and 8", 400),
+    );
+  }
 
   try {
     const student = await Student.findById(req.userId);
     if (!student) return next(new HttpError("Student not found", 404));
-    const project = await ensureProject(student, { title, semester });
+    const teacher = await Teacher.findById(teacherId);
+    if (!teacher)
+      return next(new HttpError("Choose a valid supervising teacher", 400));
+    const project = await ensureProject(student, {
+      title,
+      semester: semesterNumber,
+      subject,
+      teacherId: teacher._id,
+      teacherName: teacher.name,
+    });
 
     if (title?.trim()) project.title = title.trim();
+    project.supervisorId = teacher._id;
+    project.supervisorName = teacher.name;
     project.proposalText = proposalText?.trim() || combinedText.trim();
     project.proposalDescription = description?.trim() || "";
     project.proposalObjectives = objectives?.trim() || "";
@@ -159,7 +190,7 @@ const submitProposal = async (req, res, next) => {
     project.proposalMethodology = methodology?.trim() || "";
     project.proposalTechnologies = technologies?.trim() || "";
     project.proposalExpectedOutcome = expectedOutcome?.trim() || "";
-    project.semester = semester?.trim() || project.semester;
+    project.semester = semesterNumber;
     project.proposalStatus = "submitted";
     project.proposalSubmittedAt = new Date();
     project.proposalReviewedAt = undefined;
@@ -181,23 +212,13 @@ const submitProposal = async (req, res, next) => {
     project.aiFeedback = generateAiFeedback(project.proposalText);
     await project.save();
 
-    if (project.supervisorId) {
-      await notify({
-        recipientId: project.supervisorId,
-        recipientRole: "Teacher",
-        title: "Proposal submitted",
-        body: `${student.name} submitted a proposal for ${project.title}.`,
-        type: "proposal",
-        link: "/proposals",
-      });
-    }
     await notify({
-      recipientId: process.env.ADMIN_ID,
-      recipientRole: "Admin",
-      title: "New proposal submitted",
-      body: `${student.name} submitted ${project.title} for review.`,
+      recipientId: teacher._id,
+      recipientRole: "Teacher",
+      title: "Proposal submitted",
+      body: `${student.name} submitted a proposal for ${project.title}.`,
       type: "proposal",
-      link: "/proposals",
+      link: "/proposal-queue",
     });
 
     res.status(200).json({
@@ -238,10 +259,16 @@ const requestSupervisor = async (req, res, next) => {
       return next(new HttpError("Student or supervisor not found", 404));
     const existing = await SupervisorRequest.findOne({
       studentId: student._id,
-      teacherId,
       status: "pending",
     });
-    if (existing) return next(new HttpError("Request is already pending", 409));
+    if (existing) {
+      return next(
+        new HttpError(
+          "You already have a pending supervisor request. Wait for the teacher's response before sending another.",
+          409,
+        ),
+      );
+    }
 
     const project = await findStudentProject(student._id);
     const request = await SupervisorRequest.create({

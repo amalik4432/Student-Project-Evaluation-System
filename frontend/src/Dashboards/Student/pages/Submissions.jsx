@@ -18,6 +18,7 @@ const Submissions = ({ userId }) => {
   const { token } = useSelector((state) => state.login.input);
   const [proposal, setProposal] = useState(null);
   const [semester, setSemester] = useState("");
+  const [subject, setSubject] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [objectives, setObjectives] = useState("");
@@ -35,31 +36,38 @@ const Submissions = ({ userId }) => {
   const [requestMessage, setRequestMessage] = useState("");
   const [requests, setRequests] = useState([]);
 
-  const loadProposal = useCallback(async () => {
-    const response = await ApiCall({
-      params: { studentId: userId },
-      route: "student/proposal",
-      verb: "get",
-      token,
-      baseurl: true,
-    });
-    if (response.status === 200) {
-      setProposal(response.response.proposal);
-      const loaded = response.response.proposal;
-      setTitle(loaded.title || "");
-      setSemester(loaded.semester || "");
-      setProposalText(loaded.text || "");
-      setDescription(loaded.description || "");
-      setObjectives(loaded.objectives || "");
-      setScope(loaded.scope || "");
-      setMethodology(loaded.methodology || "");
-      setTechnologies(loaded.technologies || "");
-      setExpectedOutcome(loaded.expectedOutcome || "");
-    } else {
-      setMessage(response.response?.message || "Could not load your proposal");
-    }
-    setIsLoading(false);
-  }, [token, userId]);
+  const loadProposal = useCallback(
+    async (selectedSubject = "") => {
+      const response = await ApiCall({
+        params: { studentId: userId, subject: selectedSubject },
+        route: "student/proposal",
+        verb: "get",
+        token,
+        baseurl: true,
+      });
+      if (response.status === 200) {
+        setProposal(response.response.proposal);
+        const loaded = response.response.proposal;
+        setTitle(loaded.title || "");
+        setSemester(loaded.semester || "");
+        if (!selectedSubject) setSubject(loaded.subject || "");
+        if (!selectedSubject) setTeacherId(loaded.supervisorId || "");
+        setProposalText(loaded.text || "");
+        setDescription(loaded.description || "");
+        setObjectives(loaded.objectives || "");
+        setScope(loaded.scope || "");
+        setMethodology(loaded.methodology || "");
+        setTechnologies(loaded.technologies || "");
+        setExpectedOutcome(loaded.expectedOutcome || "");
+      } else {
+        setMessage(
+          response.response?.message || "Could not load your proposal",
+        );
+      }
+      setIsLoading(false);
+    },
+    [token, userId],
+  );
 
   useEffect(() => {
     loadProposal();
@@ -110,6 +118,8 @@ const Submissions = ({ userId }) => {
     payload.append("studentId", userId);
     payload.append("title", title);
     payload.append("semester", semester);
+    payload.append("subject", subject);
+    payload.append("teacherId", teacherId);
     payload.append("proposalText", proposalText);
     payload.append("description", description);
     payload.append("objectives", objectives);
@@ -126,7 +136,7 @@ const Submissions = ({ userId }) => {
       baseurl: true,
     });
     setMessage(response.response?.message || "");
-    if (response.status === 200) await loadProposal();
+    if (response.status === 200) await loadProposal(subject);
     setIsSaving(false);
   };
 
@@ -162,12 +172,63 @@ const Submissions = ({ userId }) => {
         )}
       </div>
       {message && <Alert variant="info">{message}</Alert>}
+      {proposal?.status === "rejected" && (
+        <Alert variant="danger" className={styles.rejectionNotice}>
+          <strong>Proposal rejected</strong>
+          <p>
+            Your supervisor rejected this proposal. Review the feedback below,
+            update the form, and submit it again.
+          </p>
+        </Alert>
+      )}
+      {proposal && proposal.status !== "rejected" && (
+        <section className={styles.statusPanel}>
+          <span className={styles.eyebrow}>Proposal status</span>
+          <strong>{statusLabels[proposal.status]}</strong>
+          <span>
+            {proposal.status === "approved"
+              ? "Your supervisor approved this proposal."
+              : proposal.status === "submitted" ||
+                  proposal.status === "under_review"
+                ? "Your proposal is with your selected supervisor for review."
+                : "Complete the form and submit your proposal to your supervisor."}
+          </span>
+        </section>
+      )}
       {isLoading ? (
         <Spinner animation="border" />
       ) : (
         proposal && (
           <div className={styles.layout}>
             <Form className={styles.form} onSubmit={handleSubmit}>
+              <Form.Group>
+                <Form.Label>Subject</Form.Label>
+                <Form.Control
+                  value={subject}
+                  onChange={(event) => setSubject(event.target.value)}
+                  placeholder="e.g. Software Engineering"
+                  required
+                />
+              </Form.Group>
+              <Form.Group>
+                <Form.Label>Supervising teacher</Form.Label>
+                <Form.Select
+                  value={teacherId}
+                  onChange={(event) => setTeacherId(event.target.value)}
+                  required
+                >
+                  <option value="">Choose a teacher</option>
+                  {teachers.map((teacher) => (
+                    <option
+                      key={teacher._id || teacher.id}
+                      value={teacher._id || teacher.id}
+                    >
+                      {teacher.name}
+                      {teacher.designation ? ` · ${teacher.designation}` : ""}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
               <Form.Group>
                 <Form.Label>Project title</Form.Label>
                 <Form.Control
@@ -180,9 +241,14 @@ const Submissions = ({ userId }) => {
               <Form.Group>
                 <Form.Label>Semester</Form.Label>
                 <Form.Control
+                  type="number"
+                  min="1"
+                  max="8"
+                  step="1"
                   value={semester}
                   onChange={(event) => setSemester(event.target.value)}
-                  placeholder="e.g. Fall 2026"
+                  placeholder="1 to 8"
+                  required
                 />
               </Form.Group>
               <Form.Group>
@@ -331,7 +397,16 @@ const Submissions = ({ userId }) => {
               onChange={(event) => setRequestMessage(event.target.value)}
               placeholder="Add a short message (optional)"
             />
-            <Button type="submit">Send request</Button>
+            <Button
+              type="submit"
+              disabled={requests.some(
+                (request) => request.status === "pending",
+              )}
+            >
+              {requests.some((request) => request.status === "pending")
+                ? "Request pending"
+                : "Send request"}
+            </Button>
           </Form>
           <div className={styles.requestHistory}>
             <h3>Request history</h3>
